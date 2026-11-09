@@ -286,8 +286,7 @@
 				{/if}
 
 				<!-- Hamburger toggle: mobile only, rendered only when isMobile is true -->
-				{#if isMobile}
-					<span class={cn("inset-shadow inline-flex rounded-xl bg-background-inset p-1.5", classes?.toggleButton)}>
+				<span class={cn("mobile-menu-toggle inset-shadow inline-flex rounded-xl bg-background-inset p-1.5", classes?.toggleButton)}>
 						<button
 							type="button"
 							onclick={toggleMobile}
@@ -305,8 +304,7 @@
 								<Close size={16} />
 							</span>
 						</button>
-					</span>
-				{/if}
+				</span>
 			</div>
 		</div>
 
@@ -393,6 +391,19 @@
 </div>
 
 <style>
+	/* Первый SSR-кадр сразу соответствует мобильному viewport — без ожидания onMount(). */
+	.mobile-menu-toggle {
+		display: none !important;
+	}
+	@media (max-width: 767px) {
+		[data-slot="triggers"] {
+			display: none !important;
+		}
+		.mobile-menu-toggle {
+			display: inline-flex !important;
+		}
+	}
+
 	.menu-wrapper {
 		animation: menu-wrapper-in 200ms ease-out;
 	}
