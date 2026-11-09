@@ -1,18 +1,9 @@
-## Разделы 
+# Opensophy
 
-### os.ui
+Opensophy — команда специалистов в области информационной безопасности и разработки. Мы оказываем услуги по внедрению DevSecOps, автоматизации процессов и настройке инфраструктуры, а также разрабатываем программное обеспечение и создаём образовательный контент.
 
-Библиотека готовых UI-компонентов с примерами, живым превью и настройками.
+## Основные ресурсы
 
-- **Где находится в коде:** `apps/web/src/lib/content/[N]Библиотека компонентов{components}/` — статьи и страницы каталога компонентов.
-- **Компоненты интерфейса сайта:** `apps/web/src/lib/components/ui-registry/`.
-- **Страница в сайте:** [`/components/overview`](https://opensophy.com/components/overview).
-- **Навигация:** описание ссылки на os.ui находится в `apps/web/src/lib/components/ui-registry/SiteMenu.svelte`.
-
-### База знаний
-
-Статьи и практические руководства по DevSecOps, инфраструктуре и смежным темам.
-
-- **Где находится контент:** `apps/web/src/lib/content/[N]База Знаний{article}/`.
-- **Страница в сайте:** [`/article/general`](https://opensophy.com/article/general).
-- **Навигация:** ссылка и описание раздела задаются в `apps/web/src/lib/components/ui-registry/SiteMenu.svelte`.
+- **Официальный сайт:** https://opensophy.com/
+- **База знаний:** https://opensophy.com/article/general
+- **UI-компоненты:** https://opensophy.com/components/overview
