@@ -20,7 +20,6 @@
   import QHintonPlot from "carbon-icons-svelte/lib/QHintonPlot.svelte";
   import Network_3 from "carbon-icons-svelte/lib/Network_3.svelte";
   import { contactsState } from "$lib/stores/contacts.svelte";
-  import { canRunHeavyEffects } from "$lib/utils/perf";
 
   // ─── Спонсоры ─────────────────────────────────────────────────
   type Sponsor = { name: string; description: string; logo?: string };
@@ -49,7 +48,7 @@
   // Телефон (< 768px): без GhostCursor, без текста и кнопок в hero
   let isPhone = $state(false);
   // Мощное устройство: можно запускать тяжёлый огонь на дуге hero
-  let heavyFx = $state(false);
+  let heavyFx = $state(true);
   // Помещаются ли все логотипы в одну строку (проверяется по скрытой копии)
   let fits = $state(true);
   let sponsorsEl = $state<HTMLElement | undefined>();
@@ -97,8 +96,6 @@
   }
 
   onMount(() => {
-    heavyFx = canRunHeavyEffects();
-
     const mq = window.matchMedia("(max-width: 1023px)");
     isMobile = mq.matches;
     const onChange = (e: MediaQueryListEvent) => {
