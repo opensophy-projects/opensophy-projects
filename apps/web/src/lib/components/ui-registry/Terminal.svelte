@@ -3,10 +3,18 @@
 
   type Pt = [number, number];
   type Spring = { x: number; t: number; v: number; e: number };
-  type Prism = { b: SVGElement; c: SVGElement; f: SVGElement; i: SVGElement };
+  type Prism = { b: SNode; c: SNode; f: SNode; i: SNode };
   type Seg = { x0: number; x1: number; p: Prism };
   type Row = { j: number; segs: Seg[]; sp: Spring; drawn: string };
   type Api = { setSpread: (v: number) => void };
+  /** Минимальный интерфейс узла: им пользуются и настоящий SVG DOM, и SSR-заглушка. */
+  type SNode = {
+    setAttribute(k: string, v: string): void;
+    // never: совместимо и с DOM-сигнатурой appendChild<T extends Node>, и с VNode
+    appendChild(c: never): unknown;
+    classList: { add(c: string): void; remove(c: string): void };
+  };
+  type Make = (tag: string) => SNode;
 
   /** Цвет подсвеченной строки, шеврона и курсора. */
   export let accent = '#f43f5e';
@@ -78,15 +86,16 @@
   let api: Api | null = null;
   $: if (api) api.setSpread(spread);
 
-  onMount(() => {
-    const mk = (n: string, a: Record<string, string>, p?: Element): SVGElement => {
-      const e = document.createElementNS(NS, n);
+  /** Строит сцену в root. Чистая функция от make — работает и на сервере, и в браузере. */
+  function buildScene(root: SNode, make: Make, R0: number) {
+    const mk = (n: string, a: Record<string, string>, p?: SNode): SNode => {
+      const e = make(n);
       for (const k in a) e.setAttribute(k, a[k]);
-      (p ?? svg).appendChild(e);
+      (p ?? root).appendChild(e as never);
       return e;
     };
     /** Призма: задний контур, рёбра силуэта, непрозрачная передняя грань, сгиб. */
-    const mkP = (par: Element): Prism => {
+    const mkP = (par: SNode): Prism => {
       const g = mk('g', {}, par);
       return { b: mk('path', { class: 'n' }, g), c: mk('path', { class: 'n' }, g), f: mk('path', { class: 'f' }, g), i: mk('path', { class: 'lo' }, g) };
     };
@@ -162,16 +171,15 @@
       }
     }
 
-    let lit: SVGElement[] = [];
-    const light = (els: SVGElement[]): void => {
+    let lit: SNode[] = [];
+    const light = (els: SNode[]): void => {
       lit.forEach((e) => e.classList.remove('hi'));
       lit = els;
       lit.forEach((e) => e.classList.add('hi'));
     };
 
     const top = spring(REST_TOP, 0.002);
-    let R = spread;
-    let over: 'prompt' | number | null = null;
+    const st = { R: R0, over: null as 'prompt' | number | null, readout: 'rest' };
 
     /** Где указатель: "prompt", глубина по строкам от 0 до 1 или null вне окна. */
     function hit(sx: number, sy: number): 'prompt' | number | null {
@@ -183,13 +191,13 @@
       return q[1] <= VB ? 'prompt' : clamp((VA - G / 2 - q[1]) / ((V - 1) * G), 0, 1);
     }
     function retarget(): void {
-      let t: number, c: number, r = R;
-      if (over === null) { t = REST_TOP; c = REST_LINE; r = REST_R; readout = 'rest'; }
-      else if (over === 'prompt') { t = N - V; c = -1; readout = 'prompt'; }
+      let t: number, c: number, r = st.R;
+      if (st.over === null) { t = REST_TOP; c = REST_LINE; r = REST_R; st.readout = 'rest'; }
+      else if (st.over === 'prompt') { t = N - V; c = -1; st.readout = 'prompt'; }
       else {
-        t = over * (N - V);
-        c = clamp(Math.round(over * (N - 1)), Math.ceil(t), Math.floor(t + V - 1));
-        readout = `line ${FIRST + c}`;
+        t = st.over * (N - V);
+        c = clamp(Math.round(st.over * (N - 1)), Math.ceil(t), Math.floor(t + V - 1));
+        st.readout = `line ${FIRST + c}`;
       }
       top.t = t;
       for (const rw of rows) rw.sp.t = c < 0 ? 0 : LIFT * clamp(1 - Math.abs(rw.j - c) / r, 0, 1);
@@ -198,6 +206,41 @@
     retarget();
     rows.forEach((rw) => (rw.sp.x = rw.sp.t));
     for (const rw of rows) drawRow(rw, top.x);
+    return { rows, top, st, hit, retarget, drawRow };
+  }
+
+  /** SSR-заглушка DOM: собирает ту же сцену в строку SVG-разметки. */
+  class VNode implements SNode {
+    attrs = new Map<string, string>();
+    kids: VNode[] = [];
+    tag: string;
+    constructor(tag: string) { this.tag = tag; }
+    setAttribute(k: string, v: string) { this.attrs.set(k, v); }
+    appendChild(c: SNode) { this.kids.push(c as VNode); }
+    classList = {
+      add: (c: string) => { const cl = (this.attrs.get('class') ?? '').split(' ').filter(Boolean); if (!cl.includes(c)) cl.push(c); this.attrs.set('class', cl.join(' ')); },
+      remove: (c: string) => { this.attrs.set('class', (this.attrs.get('class') ?? '').split(' ').filter((x) => x && x !== c).join(' ')); }
+    };
+    toString(): string {
+      let a = '';
+      for (const [k, v] of this.attrs) if (v !== '') a += ` ${k}="${v}"`;
+      return `<${this.tag}${a}>${this.kids.join('')}</${this.tag}>`;
+    }
+  }
+  // Статичный кадр в состоянии покоя: попадает в пререндеренный HTML,
+  // поэтому иллюстрация видна сразу, ещё до загрузки и запуска JS.
+  const staticRoot = new VNode('g');
+  buildScene(staticRoot, (t) => new VNode(t), spread);
+  const staticMarkup = staticRoot.kids.join('');
+
+  let live: SVGGElement;
+  let hydrated = false;
+
+  onMount(() => {
+    const scene = buildScene(live, (t) => document.createElementNS(NS, t), spread);
+    const { rows, top, st, hit, retarget, drawRow } = scene;
+    // Живая сцена готова — убираем статичную копию (кадры идентичны, вспышки нет)
+    hydrated = true;
 
     const toSvg = (e: PointerEvent): DOMPoint => {
       const pt = svg.createSVGPoint();
@@ -206,41 +249,53 @@
       const m = svg.getScreenCTM();
       return m ? pt.matrixTransform(m.inverse()) : pt;
     };
-    const mv = (e: PointerEvent): void => { const q = toSvg(e); over = hit(q.x, q.y); retarget(); };
-    const lv = (): void => { over = null; retarget(); };
+    // Анимация крутится только пока пружины в движении — в покое rAF не тратится
+    let raf = 0, last = 0;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const tick = (now: number): void => {
+      raf = 0;
+      const dt = reduce ? 1 : Math.min(0.05, (now - last) / 1000);
+      last = now;
+      let moving = step(top, dt);
+      for (const rw of rows) { if (step(rw.sp, dt)) moving = true; drawRow(rw, top.x); }
+      if (moving) raf = requestAnimationFrame(tick);
+    };
+    const kick = (): void => {
+      readout = st.readout;
+      if (raf) return;
+      last = performance.now();
+      raf = requestAnimationFrame(tick);
+    };
+
+    const mv = (e: PointerEvent): void => { const q = toSvg(e); st.over = hit(q.x, q.y); retarget(); kick(); };
+    const lv = (): void => { st.over = null; retarget(); kick(); };
     const up = (e: PointerEvent): void => { if (e.pointerType !== 'mouse') lv(); };
     svg.addEventListener('pointermove', mv);
     svg.addEventListener('pointerdown', mv);
     svg.addEventListener('pointerleave', lv);
     svg.addEventListener('pointerup', up);
 
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    let raf = 0, last = performance.now();
-    const tick = (now: number): void => {
-      const dt = reduce ? 1 : Math.min(0.05, (now - last) / 1000);
-      last = now;
-      step(top, dt);
-      for (const rw of rows) { step(rw.sp, dt); drawRow(rw, top.x); }
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-
-    api = { setSpread: (v: number) => { R = v; if (over !== null) retarget(); } };
+    api = { setSpread: (v: number) => { st.R = v; if (st.over !== null) { retarget(); kick(); } } };
 
     return () => {
-      cancelAnimationFrame(raf);
+      if (raf) cancelAnimationFrame(raf);
       svg.removeEventListener('pointermove', mv);
       svg.removeEventListener('pointerdown', mv);
       svg.removeEventListener('pointerleave', lv);
       svg.removeEventListener('pointerup', up);
-      clearNode(svg);
+      clearNode(live);
       api = null;
     };
   });
 </script>
 
 <div class="hl-wrap" style="--hl-hi:{accent}">
-  <svg class="hl" bind:this={svg} viewBox="0 0 380 380" role="img" aria-label={label} style="width:{width}" />
+  <svg class="hl" bind:this={svg} viewBox="0 0 380 380" role="img" aria-label={label} style="width:{width}">
+    <g bind:this={live}></g>
+    <!-- Разметка собрана из собственных числовых констант компонента, пользовательских данных в ней нет -->
+    <!-- eslint-disable-next-line svelte/no-at-html-tags -->
+    {#if !hydrated}<g>{@html staticMarkup}</g>{/if}
+  </svg>
   {#if showControls}
     <div class="read">{readout}</div>
     <label class="ctl">
