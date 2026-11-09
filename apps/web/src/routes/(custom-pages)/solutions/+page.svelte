@@ -120,15 +120,6 @@
   <div class="mx-auto w-full max-w-5xl px-4 py-24 md:py-32">
     <header class="mb-12 max-w-3xl"></header>
 
-    <section class="service-inquiry" aria-label="Индивидуальный запрос">
-      <p>
-        Не нашли подходящую услугу? <button
-          class="inquiry-link"
-          onclick={() => contactsState.open()}
-        >Напишите нам</button> — обсудим вашу задачу и подберём решение под ваши потребности.
-      </p>
-    </section>
-
     <ServicesGrid />
 
     <section class="mt-14 flex flex-wrap justify-center gap-3 text-center">
@@ -144,12 +135,21 @@
         Политика оказания услуг
       </a>
     </section>
+
+    <section class="service-inquiry" aria-label="Индивидуальный запрос">
+      <p>
+        Не нашли подходящую услугу? <button
+          class="inquiry-link"
+          onclick={() => contactsState.open()}
+        >Напишите нам</button> — обсудим вашу задачу и подберём решение под ваши потребности.
+      </p>
+    </section>
   </div>
 </main>
 
 <style>
   .service-inquiry {
-    margin: -1.5rem auto 2rem;
+    margin: 2rem auto 0;
     max-width: 42rem;
     text-align: center;
     color: var(--foreground-muted, var(--foreground));
