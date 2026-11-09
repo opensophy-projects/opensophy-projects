@@ -35,6 +35,8 @@
   }: Props = $props();
 
   let canvas = $state<HTMLCanvasElement>();
+  // Канвас проявляется только после первого реального кадра — без пустой вспышки
+  let ready = $state(false);
 
   const VERT = `#version 300 es
 precision highp float;
@@ -254,91 +256,168 @@ void main () {
   );
 }`;
 
+  /** GLSL ES 3.00 → 1.00 для устройств без WebGL2 (старые iOS/Android). */
+  const toGL1 = (src: string, frag: boolean): string => {
+    let out = src
+      .replace("#version 300 es\n", "")
+      .replace("layout(location = 0) in vec2 aPos;", "attribute vec2 aPos;");
+    if (frag) {
+      out = out
+        .replace(/\bin vec2 vUv;/, "varying vec2 vUv;")
+        .replace("out vec4 outColor;\n", "")
+        .replace(/\boutColor\b/g, "gl_FragColor");
+    } else {
+      out = out.replace(/\bout vec2 vUv;/, "varying vec2 vUv;");
+    }
+    return out;
+  };
+
   onMount(() => {
     const cv = canvas;
     if (!cv) return;
-    const gl = cv.getContext("webgl2", {
-      alpha: true,
-      depth: false,
-      stencil: false,
-      antialias: false,
-      premultipliedAlpha: true,
-    });
-    if (!gl) return;
 
-    const compile = (type: number, src: string): WebGLShader | null => {
-      const s = gl.createShader(type);
-      if (!s) return null;
-      gl.shaderSource(s, src);
-      gl.compileShader(s);
-      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
-        console.error("ArcFlame shader error:", gl.getShaderInfoLog(s));
-      }
-      return s;
-    };
-    const vs = compile(gl.VERTEX_SHADER, VERT);
-    const fs = compile(gl.FRAGMENT_SHADER, FRAG);
-    if (!vs || !fs) return;
-    const program = gl.createProgram();
-    gl.attachShader(program, vs);
-    gl.attachShader(program, fs);
-    gl.linkProgram(program);
-
-    const U: Record<string, WebGLUniformLocation | null> = {};
-    const n = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS) as number;
-    for (let i = 0; i < n; i++) {
-      const info = gl.getActiveUniform(program, i);
-      if (info) U[info.name] = gl.getUniformLocation(program, info.name);
-    }
-
-    const quad = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, quad);
-    gl.bufferData(
-      gl.ARRAY_BUFFER,
-      new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]),
-      gl.STATIC_DRAW,
-    );
-    gl.enableVertexAttribArray(0);
-    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
-
-    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    let time = 0;
-    let last = performance.now();
-    let lastRender = 0;
-    const coarse = window.matchMedia("(pointer: coarse)").matches ||
+    const isCoarse = () =>
+      window.matchMedia("(pointer: coarse)").matches ||
       Math.min(window.innerWidth, window.innerHeight) < 768;
-    const frameInterval = coarse ? 1000 / 24 : 1000 / 30;
+    const coarse = isCoarse();
+    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    let gl: WebGL2RenderingContext | WebGLRenderingContext | null = null;
+    let program: WebGLProgram | null = null;
+    let quad: WebGLBuffer | null = null;
+    const shaders: WebGLShader[] = [];
+    let U: Record<string, WebGLUniformLocation | null> = {};
+
+    let time = 0;
+    let last = 0;
+    let lastRender = 0;
     let raf = 0;
     let visible = true;
+    let pageVisible = document.visibilityState !== "hidden";
     let dead = false;
+    let lost = false;
 
-    const syncSize = () => {
-      // Бюджет пикселей: на широких экранах не рисуем в полном dpr
+    // Адаптивное качество: если кадры идут медленно, снижаем разрешение канваса
+    let quality = 1;
+    let slowFrames = 0;
+    let fastFrames = 0;
+    const baseBudget = coarse ? 360_000 : 900_000;
+    const minQuality = 0.35;
+    // Целевой FPS: огню не нужно 60, глазу хватает 30
+    const frameInterval = 1000 / 30;
+
+    // Геометрия кэшируется и обновляется только при ресайзе — никаких
+    // getBoundingClientRect() в каждом кадре (они вызывают reflow).
+    let geom: { w: number; h: number; cx: number; cy: number; rx: number; ry: number } | null = null;
+
+    const measure = () => {
+      const el = arc;
+      if (!el) {
+        geom = null;
+        return;
+      }
       const css = cv.getBoundingClientRect();
-      const coarse = window.matchMedia("(pointer: coarse)").matches ||
-        Math.min(window.innerWidth, window.innerHeight) < 768;
+      const a = el.getBoundingClientRect();
+      if (!css.width || !css.height || !a.width || !a.height) {
+        geom = null;
+        return;
+      }
+      geom = {
+        w: css.width,
+        h: css.height,
+        cx: (a.left + a.right) / 2 - css.left,
+        cy: css.bottom - (a.top + a.bottom) / 2,
+        rx: a.width / 2,
+        ry: a.height / 2,
+      };
+    };
+
+    const syncSize = (): number => {
+      if (!geom) return 1;
       const base = Math.min(window.devicePixelRatio || 1, coarse ? 1 : 1.25);
-      // Ограничиваем число пикселей, чтобы WebGL не перегружал мобильные GPU.
-      const budget = coarse ? 420_000 : 950_000;
-      const dpr = Math.min(
-        base,
-        Math.sqrt(budget / Math.max(1, css.width * css.height)),
-      );
-      const w = Math.max(1, Math.round(css.width * dpr));
-      const h = Math.max(1, Math.round(css.height * dpr));
+      const budget = baseBudget * quality * quality;
+      const dpr = Math.min(base, Math.sqrt(budget / Math.max(1, geom.w * geom.h)));
+      const w = Math.max(1, Math.round(geom.w * dpr));
+      const h = Math.max(1, Math.round(geom.h * dpr));
       if (cv.width !== w || cv.height !== h) {
         cv.width = w;
         cv.height = h;
       }
-      return { css, dpr: w / Math.max(css.width, 1) };
+      return w / Math.max(geom.w, 1);
     };
 
-    const render = () => {
-      const el = arc;
-      if (!el) return;
-      const { css, dpr } = syncSize();
-      const a = el.getBoundingClientRect();
-      if (!a.width || !a.height) return;
+    const compile = (
+      ctx: WebGLRenderingContext | WebGL2RenderingContext,
+      type: number,
+      src: string,
+    ): WebGLShader | null => {
+      const s = ctx.createShader(type);
+      if (!s) return null;
+      ctx.shaderSource(s, src);
+      ctx.compileShader(s);
+      if (!ctx.getShaderParameter(s, ctx.COMPILE_STATUS)) {
+        console.error("ArcFlame shader error:", ctx.getShaderInfoLog(s));
+        ctx.deleteShader(s);
+        return null;
+      }
+      return s;
+    };
+
+    const init = (): boolean => {
+      const attrs: WebGLContextAttributes = {
+        alpha: true,
+        depth: false,
+        stencil: false,
+        antialias: false,
+        premultipliedAlpha: true,
+        powerPreference: "low-power",
+      };
+      const gl2 = cv.getContext("webgl2", attrs);
+      const ctx = gl2 ?? cv.getContext("webgl", attrs);
+      if (!ctx) return false;
+      const v = gl2 ? VERT : toGL1(VERT, false);
+      const f = gl2 ? FRAG : toGL1(FRAG, true);
+      const vs = compile(ctx, ctx.VERTEX_SHADER, v);
+      const fs = compile(ctx, ctx.FRAGMENT_SHADER, f);
+      if (!vs || !fs) return false;
+      const prog = ctx.createProgram();
+      if (!prog) return false;
+      ctx.attachShader(prog, vs);
+      ctx.attachShader(prog, fs);
+      ctx.bindAttribLocation(prog, 0, "aPos");
+      ctx.linkProgram(prog);
+      if (!ctx.getProgramParameter(prog, ctx.LINK_STATUS)) {
+        console.error("ArcFlame link error:", ctx.getProgramInfoLog(prog));
+        return false;
+      }
+      U = {};
+      const n = ctx.getProgramParameter(prog, ctx.ACTIVE_UNIFORMS) as number;
+      for (let i = 0; i < n; i++) {
+        const info = ctx.getActiveUniform(prog, i);
+        if (info) U[info.name] = ctx.getUniformLocation(prog, info.name);
+      }
+      const buf = ctx.createBuffer();
+      ctx.bindBuffer(ctx.ARRAY_BUFFER, buf);
+      ctx.bufferData(
+        ctx.ARRAY_BUFFER,
+        new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]),
+        ctx.STATIC_DRAW,
+      );
+      ctx.enableVertexAttribArray(0);
+      ctx.vertexAttribPointer(0, 2, ctx.FLOAT, false, 0, 0);
+      gl = ctx;
+      program = prog;
+      quad = buf;
+      shaders.push(vs, fs);
+      return true;
+    };
+
+    const render = (): boolean => {
+      if (!gl || !program || lost) return false;
+      if (!geom) measure();
+      const g = geom;
+      if (!g) return false;
+      const dpr = syncSize();
 
       gl.viewport(0, 0, cv.width, cv.height);
       gl.clearColor(0, 0, 0, 0);
@@ -347,12 +426,8 @@ void main () {
       gl.uniform2f(U.uResolution, cv.width, cv.height);
       gl.uniform1f(U.uTime, time);
       // Эллипс дуги в координатах канваса (ось Y вверх)
-      gl.uniform2f(
-        U.uCenter,
-        ((a.left + a.right) / 2 - css.left) * dpr,
-        (css.bottom - (a.top + a.bottom) / 2) * dpr,
-      );
-      gl.uniform2f(U.uRadii, (a.width / 2) * dpr, (a.height / 2) * dpr);
+      gl.uniform2f(U.uCenter, g.cx * dpr, g.cy * dpr);
+      gl.uniform2f(U.uRadii, g.rx * dpr, g.ry * dpr);
       gl.uniform3f(U.uColor, color[0], color[1], color[2]);
       gl.uniform1f(U.uIntensity, intensity);
       gl.uniform1f(U.uHeight, Math.max(height, 24) * dpr);
@@ -365,64 +440,135 @@ void main () {
       gl.uniform1f(U.uRim, rim);
       gl.uniform1f(U.uMelt, melt * dpr);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      if (!ready) ready = true;
+      return true;
     };
+
+    const adapt = (gap: number) => {
+      // gap — реальный интервал между отрисовками. Сильно больше целевого →
+      // устройство не успевает, уменьшаем число пикселей.
+      if (gap > frameInterval * 1.8) {
+        fastFrames = 0;
+        if (++slowFrames >= 8 && quality > minQuality) {
+          quality = Math.max(minQuality, quality * 0.8);
+          slowFrames = 0;
+        }
+      } else if (gap < frameInterval * 1.2) {
+        slowFrames = 0;
+        if (++fastFrames >= 120 && quality < 1) {
+          quality = Math.min(1, quality * 1.1);
+          fastFrames = 0;
+        }
+      }
+    };
+
+    const running = () => !dead && !lost && visible && pageVisible;
 
     const frame = (now: number) => {
       raf = 0;
-      if (dead || !visible) return;
-      // Не запускаем дорогой шейдер на каждом vsync: 24 FPS на телефонах,
-      // 30 FPS на остальных устройствах. Время анимации остаётся плавным.
-      if (!lastRender || now - lastRender >= frameInterval) {
+      if (!running()) return;
+      // Небольшой допуск, чтобы на 60 Гц не проскакивать в 20 FPS из-за джиттера
+      if (!lastRender || now - lastRender >= frameInterval - 4) {
+        const gap = lastRender ? now - lastRender : frameInterval;
         const dt = Math.min((now - last) / 1000, 0.1);
         last = now;
         lastRender = now;
         if (!motion.matches) time += dt * speed;
         render();
+        adapt(gap);
       }
       if (motion.matches) return; // reduced-motion: один статичный кадр
       raf = requestAnimationFrame(frame);
     };
 
     const start = () => {
-      if (raf || dead || !visible) return;
+      if (raf || !running()) return;
       last = performance.now();
+      lastRender = 0;
       raf = requestAnimationFrame(frame);
     };
 
+    const stop = () => {
+      if (raf) cancelAnimationFrame(raf);
+      raf = 0;
+    };
+
+    const onLost = (e: Event) => {
+      // Мобильные браузеры отбирают контекст под нагрузкой — просим вернуть
+      e.preventDefault();
+      lost = true;
+      ready = false;
+      stop();
+    };
+    const onRestored = () => {
+      lost = false;
+      shaders.length = 0;
+      quality = Math.max(minQuality, quality * 0.8);
+      if (init()) {
+        render();
+        start();
+      }
+    };
+    cv.addEventListener("webglcontextlost", onLost);
+    cv.addEventListener("webglcontextrestored", onRestored);
+
+    if (!init()) return () => {
+      cv.removeEventListener("webglcontextlost", onLost);
+      cv.removeEventListener("webglcontextrestored", onRestored);
+    };
+
     const ro = new ResizeObserver(() => {
+      measure();
       render();
       start();
     });
     ro.observe(cv);
+    if (arc) ro.observe(arc);
 
     const io = new IntersectionObserver((entries) => {
       visible = entries[entries.length - 1]?.isIntersecting ?? true;
       if (visible) start();
+      else stop();
     });
     io.observe(cv);
+
+    const onVisibility = () => {
+      pageVisible = document.visibilityState !== "hidden";
+      if (pageVisible) start();
+      else stop();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
 
     const onMotion = () => start();
     motion.addEventListener("change", onMotion);
 
+    measure();
+    render();
     start();
 
     return () => {
       dead = true;
-      cancelAnimationFrame(raf);
+      stop();
       ro.disconnect();
       io.disconnect();
+      document.removeEventListener("visibilitychange", onVisibility);
       motion.removeEventListener("change", onMotion);
-      gl.deleteBuffer(quad);
-      gl.deleteProgram(program);
-      gl.deleteShader(vs);
-      gl.deleteShader(fs);
+      cv.removeEventListener("webglcontextlost", onLost);
+      cv.removeEventListener("webglcontextrestored", onRestored);
+      const ctx = gl;
+      if (ctx) {
+        ctx.deleteBuffer(quad);
+        ctx.deleteProgram(program);
+        for (const s of shaders) ctx.deleteShader(s);
+      }
     };
   });
+
 </script>
 
 <canvas
   bind:this={canvas}
   class={className}
   aria-hidden="true"
-  style="position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; display: block;"
+  style="position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; display: block; opacity: {ready ? 1 : 0}; transition: opacity 400ms ease-out;"
 ></canvas>

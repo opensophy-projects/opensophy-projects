@@ -1464,17 +1464,52 @@ export function createAsciiObject(
 
   type Props = AsciiObjectOptions & {
     class?: string;
+    /**
+     * Статичный снимок результата (картинка с прозрачным фоном). Попадает в
+     * пререндеренный HTML и виден сразу, пока грузятся three.js и ассет;
+     * живой рендер плавно сменяет его после первого кадра.
+     * Можно передать разные снимки для узкого и широкого экрана.
+     */
+    poster?: string;
+    posterNarrow?: string;
+    /** Ширина (px), ниже которой используется posterNarrow. */
+    posterBreakpoint?: number;
   };
 
-  let { class: className = "", ...options }: Props = $props();
+  let {
+    class: className = "",
+    poster = "",
+    posterNarrow = "",
+    posterBreakpoint = 1024,
+    ...options
+  }: Props = $props();
 
   let canvasEl = $state<HTMLCanvasElement | undefined>(undefined);
   let instance: AsciiObjectInstance | null = null;
+  // Живой рендер показан (ассет загружен и отрисован хотя бы один кадр)
+  let live = $state(false);
 
   onMount(() => {
     if (!canvasEl) return;
-    instance = createAsciiObject({ canvas: canvasEl }, options);
+    let raf = 0;
+    const userOnLoad = options.onLoad;
+    instance = createAsciiObject(
+      { canvas: canvasEl },
+      {
+        ...options,
+        onLoad: () => {
+          userOnLoad?.();
+          // Ждём два кадра: модель должна успеть отрисоваться до смены постера
+          raf = requestAnimationFrame(() => {
+            raf = requestAnimationFrame(() => {
+              live = true;
+            });
+          });
+        },
+      },
+    );
     return () => {
+      cancelAnimationFrame(raf);
       instance?.destroy();
       instance = null;
     };
@@ -1486,8 +1521,36 @@ export function createAsciiObject(
 </script>
 
 <div class={className} style="position: relative;">
+  {#if poster}
+    <picture class="ascii-poster" class:ascii-poster-hidden={live} aria-hidden="true">
+      {#if posterNarrow}
+        <source media="(max-width: {posterBreakpoint - 1}px)" srcset={posterNarrow} />
+      {/if}
+      <img src={poster} alt="" decoding="async" fetchpriority="high" draggable="false" />
+    </picture>
+  {/if}
   <canvas
     bind:this={canvasEl}
-    style="position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none;"
+    style="position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; transition: opacity 500ms ease-out;"
+    style:opacity={poster && !live ? 0 : 1}
   ></canvas>
 </div>
+
+<style>
+  .ascii-poster {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    transition: opacity 500ms ease-out;
+  }
+  .ascii-poster img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    user-select: none;
+  }
+  .ascii-poster-hidden {
+    opacity: 0;
+  }
+</style>
