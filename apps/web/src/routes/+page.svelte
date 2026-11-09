@@ -285,6 +285,8 @@
     <div class="hero-card" aria-hidden="true">
       <div class="hero-halo"></div>
       <div class="hero-arc" bind:this={arcEl}></div>
+      <!-- CSS-подсветка видна сразу, пока WebGL запускается или если он недоступен. -->
+      <div class="hero-flame-fallback" aria-hidden="true"></div>
       <!-- Огонь по дуге: эллипс берётся из .hero-arc -->
       {#if heavyFx}
         <ArcFlame
@@ -619,6 +621,35 @@
     /* Плавное растворение внизу — никакой резкой границы между секциями */
     -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 6rem), transparent 100%);
     mask-image: linear-gradient(to bottom, #000 calc(100% - 6rem), transparent 100%);
+  }
+
+  /* Статический запасной огонь: не зависит от JS, WebGL и скорости сети.
+     WebGL-слой поверх него добавляет динамические языки и искры. */
+  .hero-flame-fallback {
+    position: absolute;
+    z-index: 1;
+    left: 50%;
+    top: 66%;
+    width: min(42vw, 34rem);
+    height: clamp(7rem, 17vw, 13rem);
+    transform: translateX(-50%);
+    pointer-events: none;
+    opacity: 0.72;
+    background:
+      radial-gradient(ellipse 24% 88% at 50% 100%, rgba(255, 72, 105, 0.48) 0%, rgba(244, 63, 94, 0.25) 38%, transparent 78%),
+      radial-gradient(ellipse 48% 70% at 50% 100%, rgba(244, 63, 94, 0.3) 0%, rgba(244, 63, 94, 0.12) 48%, transparent 82%),
+      radial-gradient(ellipse 75% 52% at 50% 100%, rgba(244, 63, 94, 0.18) 0%, transparent 76%);
+    filter: blur(12px);
+  }
+
+  @media (max-width: 1023px) {
+    .hero-flame-fallback {
+      top: 68%;
+      width: min(76vw, 30rem);
+      height: clamp(6rem, 25vw, 10rem);
+      opacity: 0.62;
+      filter: blur(14px);
+    }
   }
 
   /* Мягкое облако света над горизонтом */
