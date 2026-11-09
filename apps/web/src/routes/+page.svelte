@@ -625,6 +625,10 @@
 
   /* Статический запасной огонь: не зависит от JS, WebGL и скорости сети.
      WebGL-слой поверх него добавляет динамические языки и искры. */
+  :global(.hero-card canvas) {
+    z-index: 2;
+  }
+
   .hero-flame-fallback {
     position: absolute;
     z-index: 1;
