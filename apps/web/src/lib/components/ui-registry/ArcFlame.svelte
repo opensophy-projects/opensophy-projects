@@ -304,6 +304,10 @@ void main () {
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
     let time = 0;
     let last = performance.now();
+    let lastRender = 0;
+    const coarse = window.matchMedia("(pointer: coarse)").matches ||
+      Math.min(window.innerWidth, window.innerHeight) < 768;
+    const frameInterval = coarse ? 1000 / 24 : 1000 / 30;
     let raf = 0;
     let visible = true;
     let dead = false;
@@ -311,8 +315,11 @@ void main () {
     const syncSize = () => {
       // Бюджет пикселей: на широких экранах не рисуем в полном dpr
       const css = cv.getBoundingClientRect();
-      const base = Math.min(window.devicePixelRatio || 1, 1.5);
-      const budget = 2.2e6;
+      const coarse = window.matchMedia("(pointer: coarse)").matches ||
+        Math.min(window.innerWidth, window.innerHeight) < 768;
+      const base = Math.min(window.devicePixelRatio || 1, coarse ? 1 : 1.25);
+      // Ограничиваем число пикселей, чтобы WebGL не перегружал мобильные GPU.
+      const budget = coarse ? 420_000 : 950_000;
       const dpr = Math.min(
         base,
         Math.sqrt(budget / Math.max(1, css.width * css.height)),
@@ -363,10 +370,15 @@ void main () {
     const frame = (now: number) => {
       raf = 0;
       if (dead || !visible) return;
-      const dt = Math.min((now - last) / 1000, 1 / 30);
-      last = now;
-      if (!motion.matches) time += dt * speed;
-      render();
+      // Не запускаем дорогой шейдер на каждом vsync: 24 FPS на телефонах,
+      // 30 FPS на остальных устройствах. Время анимации остаётся плавным.
+      if (!lastRender || now - lastRender >= frameInterval) {
+        const dt = Math.min((now - last) / 1000, 0.1);
+        last = now;
+        lastRender = now;
+        if (!motion.matches) time += dt * speed;
+        render();
+      }
       if (motion.matches) return; // reduced-motion: один статичный кадр
       raf = requestAnimationFrame(frame);
     };
