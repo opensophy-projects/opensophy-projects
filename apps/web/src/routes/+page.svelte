@@ -1,5 +1,8 @@
 <svelte:head>
-  <link rel="preload" as="image" href="/logo.png" fetchpriority="high" />
+  <link rel="preload" as="image" href="/logo-ascii-wide.webp" media="(min-width: 1024px)" fetchpriority="high" />
+  <link rel="preload" as="image" href="/logo-ascii-narrow.webp" media="(max-width: 1023px)" fetchpriority="high" />
+  <!-- AsciiObject грузит исходник через fetch(), поэтому as="fetch" + crossorigin -->
+  <link rel="preload" as="fetch" href="/logo-1024.png" crossorigin="anonymous" />
 </svelte:head>
 
 <script lang="ts">
@@ -311,7 +314,9 @@
 
       <div class="hero-logo" aria-label="Opensophy ASCII logo" bind:this={logoEl}>
         <AsciiObject
-          src="/logo.png"
+          src="/logo-1024.png"
+          poster="/logo-ascii-wide.webp"
+          posterNarrow="/logo-ascii-narrow.webp"
           ascii={true}
           colored={false}
           color="#f43f5e"

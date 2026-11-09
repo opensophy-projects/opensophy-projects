@@ -97,7 +97,7 @@
 	<meta name="twitter:card" content="summary_large_image" />
 	<meta name="twitter:site" content="@opensophy" />
 	<link rel="manifest" href="/site.webmanifest" />
-	<link rel="preload" href="/logo.png" as="image" type="image/png" fetchpriority="high" />
+	<link rel="preload" href="/logo-96.png" as="image" type="image/png" fetchpriority="high" />
 	<meta name="mobile-web-app-capable" content="yes" />
 	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 	<meta name="apple-mobile-web-app-title" content={siteName} />
