@@ -995,14 +995,14 @@
   .products-section {
     position: relative;
     z-index: 1;
-    padding-bottom: clamp(3rem, 6vw, 6rem);
+    padding-bottom: 0;
   }
 
   /* NginxionS: ширина как у акцентной панели; отступ сверху — место под языки пламени */
   .nginxions-slot {
     width: 100%;
     max-width: 92rem;
-    margin: 4rem auto 2.5rem;
+    margin: 1.25rem auto 2.5rem;
     box-sizing: border-box;
   }
 
