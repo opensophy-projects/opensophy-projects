@@ -271,7 +271,8 @@ const highlighter = await createHighlighter({
 		'powershell',
 		'ts',
 		'yaml',
-		'css'
+		'css',
+		'ruby'
 	]
 });
 
