@@ -46,7 +46,7 @@ keywords: 'Opensophy, Новости, opensophy news, open-source, IT'
 
 ### NginxionS
 
-Идёт активная разработка **NginxionS (Nginx Proxy Manager by OpenSophy)** — текущий прогресс **40%**. Следить за статусом можно на [странице статуса](/status).
+Идёт активная разработка **NginxionS** — текущий прогресс **40%**. Следить за статусом можно на [странице статуса](/status).
 
 ---
 
