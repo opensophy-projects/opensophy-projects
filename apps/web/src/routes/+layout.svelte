@@ -77,7 +77,6 @@
 			{ '@type': 'SiteNavigationElement', position: 2, name: 'База Знаний', url: `${siteOrigin}/article/general` },
 			{ '@type': 'SiteNavigationElement', position: 3, name: 'os.ui', url: `${siteOrigin}/components/overview` },
 			{ '@type': 'SiteNavigationElement', position: 4, name: 'Политика оказания услуг', url: `${siteOrigin}/service-policy` },
-			{ '@type': 'SiteNavigationElement', position: 5, name: 'NPMOS', url: `${siteOrigin}/#products` },
 				{ '@type': 'SiteNavigationElement', position: 6, name: 'Статус', url: `${siteOrigin}/status` }
 		]
 	});

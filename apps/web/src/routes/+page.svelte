@@ -9,7 +9,7 @@
   import { onMount, type Component } from "svelte";
   import AsciiObject from "$lib/components/ui-registry/AsciiObject.svelte";
   import ArcFlame from "$lib/components/ui-registry/ArcFlame.svelte";
-  import ArcTimeline from "$lib/components/ui-registry/ArcTimeline.svelte";
+  import FlameWrap from "$lib/components/ui-registry/FlameWrap.svelte";
   import SiteMenu from "$lib/components/ui-registry/SiteMenu.svelte";
   import LogoCarousel from "$lib/components/ui-registry/logo-carousel.svelte";
   import Badge from "$lib/components/ui-registry/Badge.svelte";
@@ -18,13 +18,13 @@
   import Terminal from "$lib/components/ui-registry/Terminal.svelte";
   import Radar from "$lib/components/ui-registry/Radar.svelte";
   import GhostCursor from "$lib/components/ui-registry/GhostCursor.svelte";
-  import Close from "carbon-icons-svelte/lib/Close.svelte";
   import DocumentMultiple_01 from "carbon-icons-svelte/lib/DocumentMultiple_01.svelte";
   import QHintonPlot from "carbon-icons-svelte/lib/QHintonPlot.svelte";
   import Network_3 from "carbon-icons-svelte/lib/Network_3.svelte";
+  import IbmCloudGateKeeper from "carbon-icons-svelte/lib/IbmCloudGateKeeper.svelte";
   import { contactsState } from "$lib/stores/contacts.svelte";
 
-  // ─── Спонсоры ─────────────────────────────────────────────────
+  // ─── Нам доверяют ─────────────────────────────────────────────
   type Sponsor = { name: string; description: string; logo?: string };
 
   const sponsors: Sponsor[] = [
@@ -46,7 +46,7 @@
     },
   ];
 
-  // Мобильный режим: крупнее ASCII-лого и всегда карусель спонсоров
+  // Мобильный режим: крупнее ASCII-лого и всегда карусель партнёров
   let isMobile = $state(false);
   // Телефон (< 768px): без GhostCursor, без текста и кнопок в hero
   let isPhone = $state(false);
@@ -56,7 +56,6 @@
   let measureEl = $state<HTMLElement | undefined>();
 
   // Hero: ASCII-логотип. GhostCursor плавно гаснет, когда курсор приближается к нему
-  // (без маски-«дырки», поэтому никакого круга под логотипом нет).
   let logoEl = $state<HTMLElement | undefined>();
   let ghostOpacity = $state(1);
 
@@ -127,136 +126,53 @@
     };
   });
 
-  type StatusVariant = "in-progress" | "released" | "frozen" | "not-started";
+  // Цвет пламени совпадает с акцентом сайта (#f43f5e)
+  const flameColor: [number, number, number] = [0.956, 0.247, 0.369];
 
-  type ProjectStatus = {
-    variant: StatusVariant;
-    label: string;
-    href?: string;
-    modalText?: string;
-  };
-
+  // ─── Продукты ─────────────────────────────────────────────────
   type Project = {
     title: string;
     description: string;
     icon: Component<{ size?: number; class?: string }>;
-    status: ProjectStatus;
-
+    statusLabel: string;
+    href: string;
   };
 
-  // Цвет пламени совпадает с акцентом сайта (#f43f5e)
-  const flameColor: [number, number, number] = [0.956, 0.247, 0.369];
-
+  // Порядок: ui → mtls → docs
   const projects: Project[] = [
     {
-      title: "os.docs",
-      // Документы — платформа документации
-      icon: DocumentMultiple_01,
-      description:
-        "Платформа для документации и публикации контента. Подходит для технических команд, авторов и всех, кто хочет структурированно делиться знаниями.",
-      status: {
-        variant: "released",
-        label: "Проект в релизе",
-        href: "https://opensophy.com/docs/opensophy-docs",
-      },
-    },
-    {
       title: "os.ui",
-      // Диаграмма-плитка — библиотека UI-компонентов
       icon: QHintonPlot,
       description:
         "Библиотека готовых UI-компонентов с живым превью и гибкими настройками. Включает анимации, интерактивные блоки и фирменные компоненты Opensophy — для разработчиков и дизайнеров.",
-      status: {
-        variant: "released",
-        label: "Проект в релизе",
-        href: "https://opensophy.com/components/overview",
-      },
+      statusLabel: "Проект в релизе",
+      href: "https://opensophy.com/components/overview",
     },
     {
       title: "os.mtls",
-      // Сеть — mTLS-сертификаты и доступ к сервисам
       icon: Network_3,
       description:
         "Инструмент для быстрого создания и управления mTLS-сертификатами для Traefik. Позволяет надёжно закрыть доступ к сервисам и серверам без лишних сложностей.",
-      status: {
-        variant: "released",
-        label: "Проект в релизе",
-        href: "https://opensophy.com/mtls",
-      },
+      statusLabel: "Проект в релизе",
+      href: "https://opensophy.com/mtls",
     },
     {
-      title: "NPMOS",
-      icon: Network_3,
+      title: "os.docs",
+      icon: DocumentMultiple_01,
       description:
-        "Nginx Proxy Manager by OpenSophy — система управления обратным прокси на базе Nginx с веб-интерфейсом и встроенными механизмами безопасности.",
-      status: {
-        variant: "in-progress",
-        label: "В разработке",
-      },
+        "Платформа для документации и публикации контента. Подходит для технических команд, авторов и всех, кто хочет структурированно делиться знаниями.",
+      statusLabel: "Проект в релизе",
+      href: "https://opensophy.com/docs/opensophy-docs",
     },
   ];
 
-  // ─── Команда ──────────────────────────────────────────────────
-  type TeamMember = { name: string; role: string };
-
-  const team: TeamMember[] = [
-    { name: "Селезнева Богдана", role: "GRC-аналитик" },
-    { name: "Кулешов Даниил", role: "DevSecOps-инженер" },
-    { name: "Гаршина Александра", role: "DevOps-инженер" },
+  const nginxionsFeatures = [
+    "AI-powered WAF",
+    "CrowdSec",
+    "CA & mTLS",
+    "Traffic Analytics",
+    "Role Management",
   ];
-
-  // ─── История проекта (в хронологическом порядке) ──────────────
-  // Первая дата — 21.12.2025, остальные — 2026 год. Сейчас 11 октября 2026.
-  const timeline = [
-    {
-      time: "Декабрь 2025",
-      steps: [{ icon: "21.12", content: "Создание проекта opensophy" }],
-    },
-    {
-      time: "Январь 2026",
-      steps: [
-        { icon: "07.01", content: "Начало публикации образовательных статей и учебных материалов" },
-      ],
-    },
-    {
-      time: "Февраль 2026",
-      steps: [{ icon: "19.02", content: "Заключение сотрудничества с Кондор" }],
-    },
-    {
-      time: "Март 2026",
-      steps: [
-        { icon: "07.03", content: "Создание os.docs" },
-        { icon: "27.03", content: "Заключение сотрудничества с RUVDS" },
-      ],
-    },
-    {
-      time: "Август 2026",
-      steps: [{ icon: "20.08", content: "Большой ребрендинг проекта и философии" }],
-    },
-    {
-      time: "Сентябрь 2026",
-      steps: [
-        { icon: "01.09", content: "Создание os.ui" },
-        { icon: "15.09", content: "Создание os.mtls" },
-      ],
-    },
-    {
-      time: "Октябрь 2026",
-      steps: [{ icon: "11.10", content: "Формирование команды opensophy" }],
-    },
-  ];
-
-  let statusModalOpen = $state(false);
-  let statusModalText = $state("");
-
-  function openStatusModal(text: string) {
-    statusModalText = text;
-    statusModalOpen = true;
-  }
-
-  function closeStatusModal() {
-    statusModalOpen = false;
-  }
 
   function isExternal(href: string) {
     return /^https?:\/\//.test(href);
@@ -300,8 +216,6 @@
       />
     </div>
 
-    <!-- GhostCursor: ПК и планшет, не на телефоне. Маска вырезает область под дугой,
-         а прозрачность плавно падает до нуля, когда курсор рядом с ASCII-логотипом. -->
     {#if !isPhone}
       <GhostCursor color="#f43f5e" zIndex={1} class="hero-ghost" />
     {/if}
@@ -348,7 +262,7 @@
 
   <!-- Sponsors Section -->
   <section class="sponsors-section w-full max-w-5xl mx-auto px-4">
-    <p class="section-overline"><Badge variant="default">Спонсоры</Badge></p>
+    <p class="section-overline"><Badge variant="default">Нам доверяют</Badge></p>
     <div class="sponsors-wrap" bind:this={sponsorsEl}>
       <div class="sponsors-measure" bind:this={measureEl} aria-hidden="true" inert>
         {#each sponsors as s (s.name)}
@@ -423,7 +337,6 @@
       </article>
       <article class="component-cell">
         <div class="component-visual component-visual-radar">
-          <!-- Радар следит за курсором только в пределах своего элемента, а не по всей странице -->
           <Radar scope="self" />
         </div>
         <div class="component-copy">
@@ -441,42 +354,65 @@
     </div>
   </section>
 
-  <!-- Projects Section -->
-  <section class="section-block products-section w-full px-4">
+  <!-- Products -->
+  <section class="section-block products-section w-full px-4" aria-label="Продукты">
+    <!-- Акцентная панель: ui · mtls · docs в одну линию -->
     <div class="products-panel">
       <p class="section-overline"><Badge variant="default">Продукты</Badge></p>
 
       <div class="projects-grid">
-        {#each projects as project, i (project.title)}
-          {@const wide = projects.length % 2 === 1 && i === projects.length - 1}
-          {@render projectCard(project, wide)}
+        {#each projects as project (project.title)}
+          {@render projectCard(project)}
         {/each}
       </div>
     </div>
   </section>
 
-  <!-- Team -->
-  <section class="section-block team-section w-full max-w-5xl mx-auto px-4" aria-label="Команда">
-    <p class="section-overline"><Badge variant="accent">Команда</Badge></p>
-    <div class="team-grid">
-      {#each team as member (member.name)}
-        <div class="inset-shadow relative overflow-hidden rounded-xl bg-background-inset p-1.5">
-          <article class="team-card card rounded-lg bg-background">
-            <h3 class="team-name">{member.name}</h3>
-            <p class="team-role">{member.role}</p>
+      <!-- NginxionS: длинная карточка с эффектом пламени -->
+    <div class="nginxions-slot">
+      <FlameWrap
+        color={flameColor}
+        radius={12}
+        height={90}
+        spread={8}
+        intensity={0.5}
+        sparks={1.2}
+        smoke={1}
+        scorch={0}
+      >
+        <div class="project-shell inset-shadow relative overflow-hidden rounded-xl bg-background-inset p-1.5">
+          <article class="project-card nginxions-card card rounded-lg bg-background">
+            <div class="project-card-top">
+              <div
+                class="project-icon inset-shadow grid size-10 shrink-0 place-items-center rounded-sm bg-background-inset text-accent"
+              >
+                <IbmCloudGateKeeper size={22} />
+              </div>
+              <div class="project-card-header">
+                <span class="project-slug">NginxionS</span>
+              </div>
+            </div>
+
+            <p class="nginxions-subtitle">
+              Платформа проксирования и безопасности приложений нового поколения
+            </p>
+            <p class="project-desc">
+              Обратный прокси на Nginx со встроенной защитой: WAF на машинном обучении, CrowdSec,
+              собственный центр сертификации и mTLS, аналитика трафика и гибкая система ролей.
+              Управляйте всем из единого интерфейса — без зависимости от облачных сервисов.
+            </p>
+
+
+            <a
+              class="project-status project-status-link nginxions-link"
+              href="https://github.com/opensophy-projects/NginxionS"
+              target="_blank"
+              rel="noopener noreferrer"
+            >Изучить NginxionS <span aria-hidden="true">↗</span></a>
           </article>
         </div>
-      {/each}
+      </FlameWrap>
     </div>
-  </section>
-
-  <!-- Timeline -->
-  <section class="section-block timeline-section" aria-label="История проекта">
-    <p class="section-overline"><Badge variant="default">История</Badge></p>
-    <div class="w-full rounded-lg border border-border bg-background p-2">
-      <ArcTimeline data={timeline} defaultActiveStep={{ time: "Октябрь 2026", stepIndex: 0 }} />
-    </div>
-  </section>
 
   <!-- Contacts -->
   <section class="section-block contact-section" aria-label="Контакты">
@@ -503,12 +439,9 @@
 </main>
 
 <!-- Карточка продукта: внешний inset-слой + внутренняя карточка -->
-{#snippet projectCard(project: Project, span: boolean)}
+{#snippet projectCard(project: Project)}
   {@const Icon = project.icon}
-  <div
-    class="project-shell inset-shadow relative overflow-hidden rounded-xl bg-background-inset p-1.5"
-    class:project-shell-wide={span}
-  >
+  <div class="project-shell inset-shadow relative overflow-hidden rounded-xl bg-background-inset p-1.5">
     <article class="project-card card rounded-lg bg-background">
       <div class="project-card-top">
         <div
@@ -518,29 +451,14 @@
         </div>
         <div class="project-card-header">
           <span class="project-slug">{project.title}</span>
-          {#if project.status.modalText}
-            {@const modalText = project.status.modalText}
-            <button
-              type="button"
-              class="project-status project-status-{project.status.variant} project-status-link"
-              onclick={() => openStatusModal(modalText)}
-            >
-              {project.status.label}
-            </button>
-          {:else if project.status.href}
-            <a
-              href={project.status.href}
-              target={isExternal(project.status.href) ? "_blank" : undefined}
-              rel={isExternal(project.status.href) ? "noreferrer" : undefined}
-              class="project-status project-status-{project.status.variant} project-status-link"
-            >
-              {project.status.label}
-            </a>
-          {:else}
-            <span class="project-status project-status-{project.status.variant}">
-              {project.status.label}
-            </span>
-          {/if}
+          <a
+            href={project.href}
+            target={isExternal(project.href) ? "_blank" : undefined}
+            rel={isExternal(project.href) ? "noreferrer" : undefined}
+            class="project-status project-status-link"
+          >
+            {project.statusLabel}
+          </a>
         </div>
       </div>
       <p class="project-desc">{project.description}</p>
@@ -564,49 +482,18 @@
   </div>
 {/snippet}
 
-{#if statusModalOpen}
-  <div
-    class="status-modal-overlay"
-    onclick={closeStatusModal}
-    onkeydown={(e) => {
-      if (e.key === "Escape") closeStatusModal();
-    }}
-    role="button"
-    tabindex="-1"
-    aria-label="Закрыть"
-  >
-    <div
-      class="status-modal"
-      onclick={(e) => e.stopPropagation()}
-      onkeydown={(e) => e.stopPropagation()}
-      role="dialog"
-      aria-modal="true"
-      aria-label="Информация о статусе"
-      tabindex="-1"
-    >
-      <button type="button" class="status-modal-close" onclick={closeStatusModal} aria-label="Закрыть">
-        <Close size={18} />
-      </button>
-      <p class="status-modal-text">{statusModalText}</p>
-    </div>
-  </div>
-{/if}
-
 <style>
   /* ─── Hero ─────────────────────────────────────────────────── */
   .hero-section {
     position: relative;
     min-height: 40rem;
     padding: 6rem 0 5rem;
-    /* Эллипс дуги (для маски GhostCursor): полуоси и центр */
     --arc-rx: 82.5%;
     --arc-ry: 21rem;
     --arc-cy: calc(100% + 17rem);
-    /* Плавность затухания GhostCursor возле логотипа — задаётся из JS */
     --ghost-opacity: 1;
   }
 
-  /* Карточка со свечением: растянута на всю секцию, скруглена снизу */
   .hero-card {
     position: absolute;
     top: 0;
@@ -617,12 +504,10 @@
     overflow: hidden;
     box-shadow: none;
     pointer-events: none;
-    /* Плавное растворение внизу — никакой резкой границы между секциями */
     -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 6rem), transparent 100%);
     mask-image: linear-gradient(to bottom, #000 calc(100% - 6rem), transparent 100%);
   }
 
-  /* Мягкое облако света над горизонтом */
   .hero-halo {
     position: absolute;
     inset: 0;
@@ -641,8 +526,6 @@
       );
   }
 
-  /* Огромный тёмный «шар» — его верхний край даёт изогнутую светящуюся линию */
-  /* Эллипс с центром на нижней кромке: дуга идёт от угла до угла */
   .hero-arc {
     position: absolute;
     left: 50%;
@@ -679,10 +562,6 @@
     padding: 0 1.25rem;
   }
 
-  /* GhostCursor:
-     1) маска скрывает всё, что внутри эллипса дуги (параметры --arc-* совпадают с .hero-arc);
-     2) opacity плавно уходит в 0 рядом с ASCII-логотипом (значение считается в JS).
-     Никаких «дырок» в маске — поэтому круга вокруг логотипа больше нет. */
   :global(.hero-ghost) {
     opacity: var(--ghost-opacity, 1);
     transition: opacity 250ms ease-out;
@@ -698,7 +577,6 @@
     );
   }
 
-  /* Стиль как у блока «Opensophy занимается…» */
   .hero-lead {
     margin: 0;
     font-size: clamp(1.75rem, 3.5vw, 2.6rem);
@@ -762,7 +640,6 @@
       row-gap: 0.5rem;
     }
 
-    /* Мобильный порядок: заголовок → логотип → кнопки */
     .hero-lead {
       grid-column: 1;
       grid-row: auto;
@@ -787,7 +664,6 @@
     }
   }
 
-  /* Телефон: в hero остаётся только логотип (h1 скрыт визуально, но есть для SEO/скринридеров) */
   @media (max-width: 767px) {
     .hero-lead {
       position: absolute;
@@ -912,7 +788,7 @@
     transform: translate(-50%, 0);
   }
 
-  /* ─── About us (между спонсорами и сеткой направлений) ──────── */
+  /* ─── About us ─────────────────────────────────────────────── */
   .about-us-section {
     padding-bottom: clamp(2.5rem, 5vw, 4.5rem);
   }
@@ -929,7 +805,6 @@
   }
 
   /* ─── Component showcase ─────────────────────────────────── */
-  /* Ширина совпадает с границами свечения (hero-card): 92rem */
   .component-showcase {
     width: calc(100% - 2rem);
     max-width: 92rem;
@@ -938,7 +813,6 @@
     box-sizing: border-box;
   }
 
-  /* 4 карточки: 4 колонки на ПК, 2×2 на планшете, 1 колонка на телефоне */
   .component-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -951,7 +825,6 @@
     margin-top: clamp(2rem, 4vw, 3.5rem);
   }
 
-  /* Мобильный: три кнопки друг под другом, на всю ширину */
   @media (max-width: 767px) {
     .component-showcase .showcase-actions {
       flex-direction: column;
@@ -989,7 +862,6 @@
     max-height: none;
   }
 
-  /* Тема радара: линии — цвет текста, заливка — фон, акцент — фирменный розовый */
   .component-visual-radar {
     --hl-ink: var(--foreground);
     --hl-surface: var(--background);
@@ -1011,7 +883,6 @@
     letter-spacing: -0.025em;
   }
 
-  /* Стиль текста как в блоке «Opensophy — это инициатива…» */
   .component-copy p {
     margin: 0;
     color: var(--foreground-muted);
@@ -1090,83 +961,6 @@
     margin-bottom: 1rem;
   }
 
-  .products-section {
-    position: relative;
-    z-index: 1;
-  }
-
-  /* Розовая подложка секции «Продукты»: обычный блок до 92rem
-     со скруглёнными углами, прозрачность вшита в цвета градиента */
-  .products-panel {
-    width: 100%;
-    max-width: 92rem;
-    margin: 0 auto;
-    box-sizing: border-box;
-    padding: 2.5rem 1.25rem;
-    border-radius: var(--radius-3xl, 3.3rem);
-    background: radial-gradient(
-      farthest-corner at 50% 50%,
-      color-mix(in srgb, color-mix(in srgb, #f43f5e 85%, white) 32%, transparent) 0%,
-      color-mix(in srgb, #f43f5e 32%, transparent) 55%,
-      color-mix(in srgb, color-mix(in srgb, #f43f5e 80%, black) 32%, transparent) 100%
-    );
-  }
-
-  :global(.dark) .products-panel {
-    background: radial-gradient(
-      farthest-corner at 50% 50%,
-      color-mix(in srgb, color-mix(in srgb, #f43f5e 85%, white) 22%, transparent) 0%,
-      color-mix(in srgb, #f43f5e 22%, transparent) 55%,
-      color-mix(in srgb, color-mix(in srgb, #f43f5e 80%, black) 22%, transparent) 100%
-    );
-  }
-
-  /* Карточки остаются прежней ширины по центру панели */
-  .products-panel .projects-grid {
-    max-width: 64rem;
-    margin: 0 auto;
-  }
-
-  @media (max-width: 767px) {
-    .products-panel {
-      padding: 2rem 0.75rem;
-      border-radius: 1.75rem;
-    }
-  }
-
-  .section-lead {
-    font-size: clamp(1.75rem, 3.5vw, 2.6rem);
-    font-weight: 500;
-    line-height: 1.55;
-    margin: 0;
-    max-width: 100%;
-  }
-
-  .section-headlines {
-    display: flex;
-    flex-direction: column;
-    gap: 0.1rem;
-    margin-bottom: 2.5rem;
-  }
-
-  .section-headline-plain {
-    font-size: clamp(1.75rem, 3.5vw, 2.6rem);
-    font-weight: 500;
-    line-height: 1.55;
-    color: var(--foreground);
-    margin: 0;
-    max-width: 100%;
-  }
-
-  .section-headline-muted {
-    font-size: clamp(1.75rem, 3.5vw, 2.6rem);
-    font-weight: 500;
-    line-height: 1.55;
-    color: var(--foreground-muted);
-    margin: 0;
-    max-width: 100%;
-  }
-
   .services-actions {
     display: flex;
     flex-wrap: wrap;
@@ -1197,29 +991,115 @@
     color: #fff;
   }
 
-  /* ─── Products: карточки с иконками ── */
+  /* ─── Products ─────────────────────────────────────────────── */
+  .products-section {
+    position: relative;
+    z-index: 1;
+    padding-bottom: 0;
+  }
+
+  /* NginxionS: ширина как у акцентной панели; отступ сверху — место под языки пламени */
+  .nginxions-slot {
+    width: 100%;
+    max-width: 92rem;
+    margin: 1.25rem auto 2.5rem;
+    box-sizing: border-box;
+  }
+
+  .nginxions-card {
+    gap: 0.9rem;
+    min-height: 0;
+  }
+
+  .nginxions-subtitle {
+    margin: 0;
+    color: var(--foreground);
+    font-size: clamp(1.05rem, 1.7vw, 1.35rem);
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: -0.02em;
+  }
+
+  .nginxions-card .project-desc {
+    flex: none;
+    max-width: 70rem;
+  }
+
+  .nginxions-features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .nginxions-features span {
+    padding: 0.35rem 0.65rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--background-inset);
+    color: var(--foreground-muted);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+
+  .nginxions-link {
+    align-self: flex-start;
+    gap: 0.4rem;
+    margin-top: 0.25rem;
+  }
+
+  /* Акцентный прямоугольник */
+  .products-panel {
+    width: 100%;
+    max-width: 92rem;
+    margin: 0 auto;
+    box-sizing: border-box;
+    padding: 2.5rem 1.25rem;
+    border-radius: var(--radius-3xl, 3.3rem);
+    background: radial-gradient(
+      farthest-corner at 50% 50%,
+      color-mix(in srgb, color-mix(in srgb, #f43f5e 85%, white) 32%, transparent) 0%,
+      color-mix(in srgb, #f43f5e 32%, transparent) 55%,
+      color-mix(in srgb, color-mix(in srgb, #f43f5e 80%, black) 32%, transparent) 100%
+    );
+  }
+
+  :global(.dark) .products-panel {
+    background: radial-gradient(
+      farthest-corner at 50% 50%,
+      color-mix(in srgb, color-mix(in srgb, #f43f5e 85%, white) 22%, transparent) 0%,
+      color-mix(in srgb, #f43f5e 22%, transparent) 55%,
+      color-mix(in srgb, color-mix(in srgb, #f43f5e 80%, black) 22%, transparent) 100%
+    );
+  }
+
+  /* ui · mtls · docs — одна линия */
   .projects-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0.75rem;
+    max-width: 80rem;
+    margin: 0 auto;
   }
 
-  /* Обёртка огня: отступ сверху — место под языки пламени */
-  .flame-slot {
-    margin-top: 3rem;
-  }
-
-  .project-shell-wide {
-    grid-column: 1 / -1;
-  }
-
-  @media (max-width: 639px) {
+  @media (max-width: 1023px) {
     .projects-grid {
       grid-template-columns: 1fr;
+      max-width: 40rem;
     }
-    .project-shell-wide {
-      grid-column: auto;
+  }
+
+  @media (max-width: 767px) {
+    .products-panel {
+      padding: 2rem 0.75rem;
+      border-radius: 1.75rem;
     }
+  }
+
+  .project-shell {
+    height: 100%;
+    box-sizing: border-box;
   }
 
   .project-card {
@@ -1229,11 +1109,6 @@
     height: 100%;
     min-height: 11rem;
     padding: 1.25rem 1.375rem 1.375rem;
-    box-sizing: border-box;
-  }
-
-  .project-shell {
-    height: 100%;
     box-sizing: border-box;
   }
 
@@ -1275,10 +1150,7 @@
     cursor: default;
   }
 
-  .project-status-in-progress,
-  .project-status-released,
-  .project-status-frozen,
-  .project-status-not-started {
+  .project-status-badge {
     text-transform: uppercase;
     color: var(--foreground-muted);
     background: var(--background-inset);
@@ -1308,137 +1180,11 @@
     cursor: pointer;
   }
 
-  .project-status-link:hover,
-  button.project-status-link:hover {
+  .project-status-link:hover {
     color: var(--foreground);
     text-decoration-color: var(--foreground-muted);
   }
 
-  .project-status-modal {
-    cursor: pointer;
-  }
-
-  .status-modal-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 100;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: color-mix(in srgb, var(--background-inset) 80%, transparent);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    animation: status-modal-fade-in 200ms ease-out;
-  }
-
-  .status-modal {
-    position: relative;
-    width: 100%;
-    max-width: 28rem;
-    margin: 1rem;
-    padding: 1.5rem;
-    border-radius: var(--radius-sm, 0.55rem);
-    border: 1px solid var(--border);
-    background: var(--background);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-    animation: status-modal-scale-in 250ms ease-out;
-  }
-
-  .status-modal-close {
-    position: absolute;
-    top: 0.75rem;
-    right: 0.75rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 2rem;
-    height: 2rem;
-    border-radius: var(--radius-sm, 0.55rem);
-    border: none;
-    background: transparent;
-    color: var(--foreground-muted);
-    cursor: pointer;
-    transition: background 150ms ease-out, color 150ms ease-out;
-  }
-
-  .status-modal-close:hover {
-    background: var(--background-muted);
-    color: var(--foreground);
-  }
-
-  .status-modal-text {
-    font-size: 0.9rem;
-    line-height: 1.7;
-    color: var(--foreground-muted);
-    margin: 0;
-    padding-right: 1.5rem;
-  }
-
-  @keyframes status-modal-fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  @keyframes status-modal-scale-in {
-    from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
-  }
-
-  /* ─── Team ─────────────────────────────────────────────────── */
-  .team-section {
-    padding-top: clamp(2rem, 4vw, 3.5rem);
-  }
-
-  .team-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.75rem;
-  }
-
-  @media (max-width: 767px) {
-    .team-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  .team-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 1.75rem 1.25rem;
-    text-align: center;
-    box-sizing: border-box;
-  }
-
-  .team-name {
-    margin: 0;
-    font-size: clamp(1.05rem, 1.4vw, 1.25rem);
-    font-weight: 600;
-    letter-spacing: -0.02em;
-    color: var(--foreground);
-  }
-
-  .team-role {
-    margin: 0;
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--accent);
-  }
-
-  /* Ширина как у розового блока секции «Продукты» (.products-panel) */
-  .timeline-section {
-    width: 92rem;
-    max-width: calc(100vw - 2rem);
-    margin: 0 auto;
-    box-sizing: border-box;
-    padding-bottom: clamp(3rem, 6vw, 6rem);
-  }
-
-  /* Текст как в остальных блоках: крупнее, насыщенность 500, плотный интервал */
   .project-desc {
     font-size: clamp(1rem, 1.35vw, 1.2rem);
     font-weight: 500;
@@ -1450,7 +1196,6 @@
   }
 
   /* ─── Contacts ─────────────────────────────────────────────── */
-  /* Ширина как у секции «История» и розового блока «Продукты» */
   .contact-section {
     width: 92rem;
     max-width: calc(100vw - 2rem);
@@ -1491,25 +1236,7 @@
     color: var(--foreground-muted);
   }
 
-  /* ─── Мобильные поправки: «Команда» и «Контакты» ───────────── */
   @media (max-width: 767px) {
-    .products-section {
-      padding-bottom: 1.5rem;
-    }
-
-    .team-section {
-      padding-top: 3rem;
-      padding-bottom: 2.5rem;
-    }
-
-    .team-section .section-overline {
-      margin-bottom: 1.5rem;
-    }
-
-    .team-grid {
-      gap: 1rem;
-    }
-
     .contact-card {
       padding: 2rem 1.25rem;
     }

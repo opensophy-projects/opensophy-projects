@@ -26,7 +26,7 @@ keywords: 'Opensophy, Новости, opensophy news, open-source, IT'
 
 <Badge variant="accent">графики</Badge>
 <Badge variant="success">os.docs</Badge>
-<Badge variant="warning">NPMOS</Badge>
+<Badge variant="warning">NginxionS</Badge>
 
 Обновили графики и интерфейс docs-страниц.
 
@@ -44,9 +44,9 @@ keywords: 'Opensophy, Новости, opensophy news, open-source, IT'
 
 Доработали интерфейс документации: кнопки управления сайдбаром и сменой темы теперь выглядят так же, как остальные иконки — на десктопе и в мобильной версии.
 
-### NPMOS
+### NginxionS
 
-Идёт активная разработка **NPMOS (Nginx Proxy Manager by OpenSophy)** — текущий прогресс **40%**. Следить за статусом можно на [странице статуса](/status).
+Идёт активная разработка **NginxionS** — текущий прогресс **40%**. Следить за статусом можно на [странице статуса](/status).
 
 ---
 
@@ -54,13 +54,13 @@ keywords: 'Opensophy, Новости, opensophy news, open-source, IT'
 
 <Badge variant="accent">продукты</Badge>
 <Badge variant="outline">архив</Badge>
-<Badge variant="success">NPMOS</Badge>
+<Badge variant="success">NginxionS</Badge>
 
 Обновили каталог проектов Opensophy: удалили страницы **os.dokploy**, кейсов и Docker Compose-шаблонов с OWASP ZAP, а также убрали связанные упоминания с главной страницы.
 
-**os.compose** и **os.dokploy** перенесены в архив на странице статуса. В секции продуктов теперь остаются **os.ui**, **os.docs**, **os.mtls** и новый проект **NPMOS**.
+**os.compose** и **os.dokploy** перенесены в архив на странице статуса. В секции продуктов теперь остаются **os.ui**, **os.docs**, **os.mtls** и новый проект **NginxionS**.
 
-**NPMOS (Nginx Proxy Manager by OpenSophy)** — система управления обратным прокси на базе Nginx с веб-интерфейсом и встроенными механизмами безопасности. Проект находится в разработке: **0%**.
+**NginxionS** — система управления обратным прокси на базе Nginx с веб-интерфейсом и встроенными механизмами безопасности. Проект находится в разработке: **0%**.
 
 ---
 

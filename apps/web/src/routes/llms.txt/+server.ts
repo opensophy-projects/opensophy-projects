@@ -26,7 +26,7 @@ const overviewParagraphs = [
 	'## Услуги', '',
 	'- Проверка безопасности (blackbox, graybox, whitebox).', '- Code review безопасности.', '- Поиск утечек данных (Data Leak Search).', '- Интеграция DevSecOps.', '- Консультация.', '- Поиск и устранение неполадок.', '',
 	'## Продукты', '',
-		'- os.docs — платформа для документации и публикации контента.', '- os.mtls — управление mTLS-сертификатами для Traefik.', '- os.ui — библиотека UI-компонентов.', '- NPMOS — Nginx Proxy Manager by OpenSophy, система управления обратным прокси на базе Nginx.', '',
+		'- os.docs — платформа для документации и публикации контента.', '- os.mtls — управление mTLS-сертификатами для Traefik.', '- os.ui — библиотека UI-компонентов.', '- NginxionS — NginxionS, система управления обратным прокси на базе Nginx.', '',
 
 	'## LLM guidance', '', 'Use canonical URLs. Use /sitemap.xml for discovery and raw Markdown links for documentation content.'
 ];
