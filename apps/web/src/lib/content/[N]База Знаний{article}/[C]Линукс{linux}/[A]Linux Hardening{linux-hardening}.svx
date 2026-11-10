@@ -60,7 +60,7 @@ sudo apt update && sudo apt install lynis
 
 И затем уже можно делать запуск аудита: `sudo lynis audit system`
 
-![](/assets/linuxhard1.png)
+![](/linuxhard1.png)
 
 Лог пишется в /var/log/lynis.log, отчёт — в /var/log/lynis-report.dat. Сама команда делает по умолчанию проверки по всем четырём стандартам (CIS, HIPAA, ISO27001 и PCI DSS), если хочется ограничить аудит, к примеру, только CIS, придётся создать свой профиль с compliance-standards=cis и запустить sudo lynis audit system --profile /путь/к/custom.prf
 
@@ -98,7 +98,7 @@ sudo oscap xccdf eval --profile cis_level1_server --results-arf results-arf.xml 
 xdg-open report.html
 ```
 
-![](/assets/linuxhard2.png)
+![](/linuxhard2.png)
 
 
 Из плюсов: детальный html-отчёт, и лучше, чем даже Lynis в некоторых моментах, но порог входа я бы посчитал сложнее, чем в Lynis, из-за нехватки профилей. Из-за чего я использую их в связке и не забываю про топ-3.
@@ -117,7 +117,7 @@ xdg-open report.html
 systemd-analyze security
 ```
 
-![](/assets/linuxhard3.png)
+![](/linuxhard3.png)
 
 Каждому сервису присваивается exposure level от 0.0 (максимально защищён, жёсткий sandboxing) до 10.0 (практически никакой изоляции). Для разбора конкретного сервиса указываем его юнит:
 
@@ -125,7 +125,7 @@ systemd-analyze security
 systemd-analyze security docker.service
 ```
 
-![](/assets/linuxhard4.png)
+![](/linuxhard4.png)
 
 Тут уже выводится подробная построчная таблица: какие настройки безопасности (PrivateTmp, ProtectSystem, NoNewPrivileges, RestrictNamespaces и десятки других директив unit-файла) включены, какие нет, и сколько «очков» экспозиции добавляет каждая отсутствующая настройка.
 
