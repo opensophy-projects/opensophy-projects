@@ -6,10 +6,9 @@
 </svelte:head>
 
 <script lang="ts">
-  import { onMount, type Component } from "svelte";
+  import { onMount } from "svelte";
   import AsciiObject from "$lib/components/ui-registry/AsciiObject.svelte";
   import ArcFlame from "$lib/components/ui-registry/ArcFlame.svelte";
-  import ArcTimeline from "$lib/components/ui-registry/ArcTimeline.svelte";
   import SiteMenu from "$lib/components/ui-registry/SiteMenu.svelte";
   import LogoCarousel from "$lib/components/ui-registry/logo-carousel.svelte";
   import Badge from "$lib/components/ui-registry/Badge.svelte";
@@ -18,13 +17,9 @@
   import Terminal from "$lib/components/ui-registry/Terminal.svelte";
   import Radar from "$lib/components/ui-registry/Radar.svelte";
   import GhostCursor from "$lib/components/ui-registry/GhostCursor.svelte";
-  import Close from "carbon-icons-svelte/lib/Close.svelte";
-  import DocumentMultiple_01 from "carbon-icons-svelte/lib/DocumentMultiple_01.svelte";
-  import QHintonPlot from "carbon-icons-svelte/lib/QHintonPlot.svelte";
-  import Network_3 from "carbon-icons-svelte/lib/Network_3.svelte";
   import { contactsState } from "$lib/stores/contacts.svelte";
 
-  // ─── Спонсоры ─────────────────────────────────────────────────
+  // ─── Нам доверяют ─────────────────────────────────────────────
   type Sponsor = { name: string; description: string; logo?: string };
 
   const sponsors: Sponsor[] = [
@@ -46,7 +41,7 @@
     },
   ];
 
-  // Мобильный режим: крупнее ASCII-лого и всегда карусель спонсоров
+  // Мобильный режим: крупнее ASCII-лого и всегда карусель партнёров
   let isMobile = $state(false);
   // Телефон (< 768px): без GhostCursor, без текста и кнопок в hero
   let isPhone = $state(false);
@@ -127,140 +122,9 @@
     };
   });
 
-  type StatusVariant = "in-progress" | "released" | "frozen" | "not-started";
-
-  type ProjectStatus = {
-    variant: StatusVariant;
-    label: string;
-    href?: string;
-    modalText?: string;
-  };
-
-  type Project = {
-    title: string;
-    description: string;
-    icon: Component<{ size?: number; class?: string }>;
-    status: ProjectStatus;
-
-  };
-
   // Цвет пламени совпадает с акцентом сайта (#f43f5e)
   const flameColor: [number, number, number] = [0.956, 0.247, 0.369];
 
-  const projects: Project[] = [
-    {
-      title: "os.docs",
-      // Документы — платформа документации
-      icon: DocumentMultiple_01,
-      description:
-        "Платформа для документации и публикации контента. Подходит для технических команд, авторов и всех, кто хочет структурированно делиться знаниями.",
-      status: {
-        variant: "released",
-        label: "Проект в релизе",
-        href: "https://opensophy.com/docs/opensophy-docs",
-      },
-    },
-    {
-      title: "os.ui",
-      // Диаграмма-плитка — библиотека UI-компонентов
-      icon: QHintonPlot,
-      description:
-        "Библиотека готовых UI-компонентов с живым превью и гибкими настройками. Включает анимации, интерактивные блоки и фирменные компоненты Opensophy — для разработчиков и дизайнеров.",
-      status: {
-        variant: "released",
-        label: "Проект в релизе",
-        href: "https://opensophy.com/components/overview",
-      },
-    },
-    {
-      title: "os.mtls",
-      // Сеть — mTLS-сертификаты и доступ к сервисам
-      icon: Network_3,
-      description:
-        "Инструмент для быстрого создания и управления mTLS-сертификатами для Traefik. Позволяет надёжно закрыть доступ к сервисам и серверам без лишних сложностей.",
-      status: {
-        variant: "released",
-        label: "Проект в релизе",
-        href: "https://opensophy.com/mtls",
-      },
-    },
-    {
-      title: "NPMOS",
-      icon: Network_3,
-      description:
-        "Nginx Proxy Manager by OpenSophy — система управления обратным прокси на базе Nginx с веб-интерфейсом и встроенными механизмами безопасности.",
-      status: {
-        variant: "in-progress",
-        label: "В разработке",
-      },
-    },
-  ];
-
-  // ─── Команда ──────────────────────────────────────────────────
-  type TeamMember = { name: string; role: string };
-
-  const team: TeamMember[] = [
-    { name: "Селезнева Богдана", role: "GRC-аналитик" },
-    { name: "Кулешов Даниил", role: "DevSecOps-инженер" },
-    { name: "Гаршина Александра", role: "DevOps-инженер" },
-  ];
-
-  // ─── История проекта (в хронологическом порядке) ──────────────
-  // Первая дата — 21.12.2025, остальные — 2026 год. Сейчас 11 октября 2026.
-  const timeline = [
-    {
-      time: "Декабрь 2025",
-      steps: [{ icon: "21.12", content: "Создание проекта opensophy" }],
-    },
-    {
-      time: "Январь 2026",
-      steps: [
-        { icon: "07.01", content: "Начало публикации образовательных статей и учебных материалов" },
-      ],
-    },
-    {
-      time: "Февраль 2026",
-      steps: [{ icon: "19.02", content: "Заключение сотрудничества с Кондор" }],
-    },
-    {
-      time: "Март 2026",
-      steps: [
-        { icon: "07.03", content: "Создание os.docs" },
-        { icon: "27.03", content: "Заключение сотрудничества с RUVDS" },
-      ],
-    },
-    {
-      time: "Август 2026",
-      steps: [{ icon: "20.08", content: "Большой ребрендинг проекта и философии" }],
-    },
-    {
-      time: "Сентябрь 2026",
-      steps: [
-        { icon: "01.09", content: "Создание os.ui" },
-        { icon: "15.09", content: "Создание os.mtls" },
-      ],
-    },
-    {
-      time: "Октябрь 2026",
-      steps: [{ icon: "11.10", content: "Формирование команды opensophy" }],
-    },
-  ];
-
-  let statusModalOpen = $state(false);
-  let statusModalText = $state("");
-
-  function openStatusModal(text: string) {
-    statusModalText = text;
-    statusModalOpen = true;
-  }
-
-  function closeStatusModal() {
-    statusModalOpen = false;
-  }
-
-  function isExternal(href: string) {
-    return /^https?:\/\//.test(href);
-  }
 </script>
 
 <a
@@ -348,7 +212,7 @@
 
   <!-- Sponsors Section -->
   <section class="sponsors-section w-full max-w-5xl mx-auto px-4">
-    <p class="section-overline"><Badge variant="default">Спонсоры</Badge></p>
+    <p class="section-overline"><Badge variant="default">Нам доверяют</Badge></p>
     <div class="sponsors-wrap" bind:this={sponsorsEl}>
       <div class="sponsors-measure" bind:this={measureEl} aria-hidden="true" inert>
         {#each sponsors as s (s.name)}
@@ -441,43 +305,6 @@
     </div>
   </section>
 
-  <!-- Projects Section -->
-  <section class="section-block products-section w-full px-4">
-    <div class="products-panel">
-      <p class="section-overline"><Badge variant="default">Продукты</Badge></p>
-
-      <div class="projects-grid">
-        {#each projects as project, i (project.title)}
-          {@const wide = projects.length % 2 === 1 && i === projects.length - 1}
-          {@render projectCard(project, wide)}
-        {/each}
-      </div>
-    </div>
-  </section>
-
-  <!-- Team -->
-  <section class="section-block team-section w-full max-w-5xl mx-auto px-4" aria-label="Команда">
-    <p class="section-overline"><Badge variant="accent">Команда</Badge></p>
-    <div class="team-grid">
-      {#each team as member (member.name)}
-        <div class="inset-shadow relative overflow-hidden rounded-xl bg-background-inset p-1.5">
-          <article class="team-card card rounded-lg bg-background">
-            <h3 class="team-name">{member.name}</h3>
-            <p class="team-role">{member.role}</p>
-          </article>
-        </div>
-      {/each}
-    </div>
-  </section>
-
-  <!-- Timeline -->
-  <section class="section-block timeline-section" aria-label="История проекта">
-    <p class="section-overline"><Badge variant="default">История</Badge></p>
-    <div class="w-full rounded-lg border border-border bg-background p-2">
-      <ArcTimeline data={timeline} defaultActiveStep={{ time: "Октябрь 2026", stepIndex: 0 }} />
-    </div>
-  </section>
-
   <!-- Contacts -->
   <section class="section-block contact-section" aria-label="Контакты">
     <p class="section-overline"><Badge variant="accent">Контакты</Badge></p>
@@ -502,52 +329,6 @@
   </section>
 </main>
 
-<!-- Карточка продукта: внешний inset-слой + внутренняя карточка -->
-{#snippet projectCard(project: Project, span: boolean)}
-  {@const Icon = project.icon}
-  <div
-    class="project-shell inset-shadow relative overflow-hidden rounded-xl bg-background-inset p-1.5"
-    class:project-shell-wide={span}
-  >
-    <article class="project-card card rounded-lg bg-background">
-      <div class="project-card-top">
-        <div
-          class="project-icon inset-shadow grid size-10 shrink-0 place-items-center rounded-sm bg-background-inset text-accent"
-        >
-          <Icon size={22} />
-        </div>
-        <div class="project-card-header">
-          <span class="project-slug">{project.title}</span>
-          {#if project.status.modalText}
-            {@const modalText = project.status.modalText}
-            <button
-              type="button"
-              class="project-status project-status-{project.status.variant} project-status-link"
-              onclick={() => openStatusModal(modalText)}
-            >
-              {project.status.label}
-            </button>
-          {:else if project.status.href}
-            <a
-              href={project.status.href}
-              target={isExternal(project.status.href) ? "_blank" : undefined}
-              rel={isExternal(project.status.href) ? "noreferrer" : undefined}
-              class="project-status project-status-{project.status.variant} project-status-link"
-            >
-              {project.status.label}
-            </a>
-          {:else}
-            <span class="project-status project-status-{project.status.variant}">
-              {project.status.label}
-            </span>
-          {/if}
-        </div>
-      </div>
-      <p class="project-desc">{project.description}</p>
-    </article>
-  </div>
-{/snippet}
-
 {#snippet sponsorFace(s: Sponsor)}
   {#if s.logo}
     <img src={s.logo} alt={s.name} class="sponsor-logo" loading="lazy" decoding="async" />
@@ -563,34 +344,6 @@
     <span class="sponsor-tip" role="tooltip">{s.description}</span>
   </div>
 {/snippet}
-
-{#if statusModalOpen}
-  <div
-    class="status-modal-overlay"
-    onclick={closeStatusModal}
-    onkeydown={(e) => {
-      if (e.key === "Escape") closeStatusModal();
-    }}
-    role="button"
-    tabindex="-1"
-    aria-label="Закрыть"
-  >
-    <div
-      class="status-modal"
-      onclick={(e) => e.stopPropagation()}
-      onkeydown={(e) => e.stopPropagation()}
-      role="dialog"
-      aria-modal="true"
-      aria-label="Информация о статусе"
-      tabindex="-1"
-    >
-      <button type="button" class="status-modal-close" onclick={closeStatusModal} aria-label="Закрыть">
-        <Close size={18} />
-      </button>
-      <p class="status-modal-text">{statusModalText}</p>
-    </div>
-  </div>
-{/if}
 
 <style>
   /* ─── Hero ─────────────────────────────────────────────────── */
@@ -1090,50 +843,6 @@
     margin-bottom: 1rem;
   }
 
-  .products-section {
-    position: relative;
-    z-index: 1;
-  }
-
-  /* Розовая подложка секции «Продукты»: обычный блок до 92rem
-     со скруглёнными углами, прозрачность вшита в цвета градиента */
-  .products-panel {
-    width: 100%;
-    max-width: 92rem;
-    margin: 0 auto;
-    box-sizing: border-box;
-    padding: 2.5rem 1.25rem;
-    border-radius: var(--radius-3xl, 3.3rem);
-    background: radial-gradient(
-      farthest-corner at 50% 50%,
-      color-mix(in srgb, color-mix(in srgb, #f43f5e 85%, white) 32%, transparent) 0%,
-      color-mix(in srgb, #f43f5e 32%, transparent) 55%,
-      color-mix(in srgb, color-mix(in srgb, #f43f5e 80%, black) 32%, transparent) 100%
-    );
-  }
-
-  :global(.dark) .products-panel {
-    background: radial-gradient(
-      farthest-corner at 50% 50%,
-      color-mix(in srgb, color-mix(in srgb, #f43f5e 85%, white) 22%, transparent) 0%,
-      color-mix(in srgb, #f43f5e 22%, transparent) 55%,
-      color-mix(in srgb, color-mix(in srgb, #f43f5e 80%, black) 22%, transparent) 100%
-    );
-  }
-
-  /* Карточки остаются прежней ширины по центру панели */
-  .products-panel .projects-grid {
-    max-width: 64rem;
-    margin: 0 auto;
-  }
-
-  @media (max-width: 767px) {
-    .products-panel {
-      padding: 2rem 0.75rem;
-      border-radius: 1.75rem;
-    }
-  }
-
   .section-lead {
     font-size: clamp(1.75rem, 3.5vw, 2.6rem);
     font-weight: 500;
@@ -1197,260 +906,8 @@
     color: #fff;
   }
 
-  /* ─── Products: карточки с иконками ── */
-  .projects-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.75rem;
-  }
-
-  /* Обёртка огня: отступ сверху — место под языки пламени */
-  .flame-slot {
-    margin-top: 3rem;
-  }
-
-  .project-shell-wide {
-    grid-column: 1 / -1;
-  }
-
-  @media (max-width: 639px) {
-    .projects-grid {
-      grid-template-columns: 1fr;
-    }
-    .project-shell-wide {
-      grid-column: auto;
-    }
-  }
-
-  .project-card {
-    display: flex;
-    flex-direction: column;
-    gap: 0.9rem;
-    height: 100%;
-    min-height: 11rem;
-    padding: 1.25rem 1.375rem 1.375rem;
-    box-sizing: border-box;
-  }
-
-  .project-shell {
-    height: 100%;
-    box-sizing: border-box;
-  }
-
-  .project-card-top {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-
-  .project-card-header {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    min-width: 0;
-  }
-
-  .project-slug {
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 0.9rem;
-    font-weight: 700;
-    letter-spacing: -0.01em;
-    color: var(--foreground);
-  }
-
-  @media (min-width: 768px) {
-    .project-slug {
-      font-size: 1rem;
-    }
-  }
-
-  .project-status {
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 0.62rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    border: none;
-    padding: 0;
-    cursor: default;
-  }
-
-  .project-status-in-progress,
-  .project-status-released,
-  .project-status-frozen,
-  .project-status-not-started {
-    text-transform: uppercase;
-    color: var(--foreground-muted);
-    background: var(--background-inset);
-    border: 1px solid var(--border);
-    padding: 0.15rem 0.45rem;
-    border-radius: 999px;
-  }
-
-  .project-status-link {
-    display: inline-flex;
-    align-items: center;
-    font-size: 0.9rem;
-    font-weight: 500;
-    font-family: inherit;
-    letter-spacing: normal;
-    text-transform: none;
-    text-decoration: underline;
-    text-decoration-color: color-mix(in srgb, var(--accent) 50%, transparent);
-    text-decoration-style: dotted;
-    text-underline-offset: 4px;
-    color: var(--accent);
-    background: transparent;
-    border: none;
-    padding: 0;
-    border-radius: 0;
-    transition: color 150ms ease-out, text-decoration-color 150ms ease-out;
-    cursor: pointer;
-  }
-
-  .project-status-link:hover,
-  button.project-status-link:hover {
-    color: var(--foreground);
-    text-decoration-color: var(--foreground-muted);
-  }
-
-  .project-status-modal {
-    cursor: pointer;
-  }
-
-  .status-modal-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 100;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: color-mix(in srgb, var(--background-inset) 80%, transparent);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    animation: status-modal-fade-in 200ms ease-out;
-  }
-
-  .status-modal {
-    position: relative;
-    width: 100%;
-    max-width: 28rem;
-    margin: 1rem;
-    padding: 1.5rem;
-    border-radius: var(--radius-sm, 0.55rem);
-    border: 1px solid var(--border);
-    background: var(--background);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-    animation: status-modal-scale-in 250ms ease-out;
-  }
-
-  .status-modal-close {
-    position: absolute;
-    top: 0.75rem;
-    right: 0.75rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 2rem;
-    height: 2rem;
-    border-radius: var(--radius-sm, 0.55rem);
-    border: none;
-    background: transparent;
-    color: var(--foreground-muted);
-    cursor: pointer;
-    transition: background 150ms ease-out, color 150ms ease-out;
-  }
-
-  .status-modal-close:hover {
-    background: var(--background-muted);
-    color: var(--foreground);
-  }
-
-  .status-modal-text {
-    font-size: 0.9rem;
-    line-height: 1.7;
-    color: var(--foreground-muted);
-    margin: 0;
-    padding-right: 1.5rem;
-  }
-
-  @keyframes status-modal-fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  @keyframes status-modal-scale-in {
-    from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
-  }
-
-  /* ─── Team ─────────────────────────────────────────────────── */
-  .team-section {
-    padding-top: clamp(2rem, 4vw, 3.5rem);
-  }
-
-  .team-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.75rem;
-  }
-
-  @media (max-width: 767px) {
-    .team-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  .team-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 1.75rem 1.25rem;
-    text-align: center;
-    box-sizing: border-box;
-  }
-
-  .team-name {
-    margin: 0;
-    font-size: clamp(1.05rem, 1.4vw, 1.25rem);
-    font-weight: 600;
-    letter-spacing: -0.02em;
-    color: var(--foreground);
-  }
-
-  .team-role {
-    margin: 0;
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--accent);
-  }
-
-  /* Ширина как у розового блока секции «Продукты» (.products-panel) */
-  .timeline-section {
-    width: 92rem;
-    max-width: calc(100vw - 2rem);
-    margin: 0 auto;
-    box-sizing: border-box;
-    padding-bottom: clamp(3rem, 6vw, 6rem);
-  }
-
-  /* Текст как в остальных блоках: крупнее, насыщенность 500, плотный интервал */
-  .project-desc {
-    font-size: clamp(1rem, 1.35vw, 1.2rem);
-    font-weight: 500;
-    line-height: 1.45;
-    letter-spacing: -0.02em;
-    color: var(--foreground-muted);
-    margin: 0;
-    flex: 1;
-  }
-
   /* ─── Contacts ─────────────────────────────────────────────── */
-  /* Ширина как у секции «История» и розового блока «Продукты» */
+  /* Ширина контактной секции */
   .contact-section {
     width: 92rem;
     max-width: calc(100vw - 2rem);
@@ -1491,25 +948,8 @@
     color: var(--foreground-muted);
   }
 
-  /* ─── Мобильные поправки: «Команда» и «Контакты» ───────────── */
+  /* ─── Мобильные поправки для контактов ─────────────────────── */
   @media (max-width: 767px) {
-    .products-section {
-      padding-bottom: 1.5rem;
-    }
-
-    .team-section {
-      padding-top: 3rem;
-      padding-bottom: 2.5rem;
-    }
-
-    .team-section .section-overline {
-      margin-bottom: 1.5rem;
-    }
-
-    .team-grid {
-      gap: 1rem;
-    }
-
     .contact-card {
       padding: 2rem 1.25rem;
     }
