@@ -303,6 +303,61 @@
     <div class="services-actions showcase-actions">
       <a class="services-action services-action-primary" href="/solutions">Посмотреть все услуги</a>
     </div>
+
+    <!-- Featured product: NginxionS -->
+    <section class="nginxions-section" aria-labelledby="nginxions-title">
+      <div class="nginxions-card">
+        <div class="nginxions-glow" aria-hidden="true"></div>
+        <div class="nginxions-content">
+          <div class="nginxions-topline">
+            <span class="nginxions-eyebrow"><span class="nginxions-status-dot"></span> Продукт Opensophy</span>
+            <span class="nginxions-label">Open Source · Self-hosted</span>
+          </div>
+
+          <div class="nginxions-main">
+            <div class="nginxions-copy">
+              <p class="nginxions-overline">Встречайте</p>
+              <h2 id="nginxions-title">Nginxion<span>S</span></h2>
+              <p class="nginxions-subtitle">Next-Generation Open Source Proxy &amp; Application Security Platform</p>
+              <p class="nginxions-description">
+                Обратный прокси на Nginx со встроенной защитой: WAF на машинном обучении, CrowdSec,
+                собственный центр сертификации и mTLS, аналитика трафика и гибкая система ролей.
+                Управляйте всем из единого интерфейса — без зависимости от облачных сервисов.
+              </p>
+              <div class="nginxions-features" aria-label="Возможности NginxionS">
+                <span>AI-powered WAF</span>
+                <span>CrowdSec</span>
+                <span>CA &amp; mTLS</span>
+                <span>Traffic Analytics</span>
+                <span>Role Management</span>
+              </div>
+              <a
+                class="nginxions-link"
+                href="https://github.com/opensophy-projects/NginxionS"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Изучить NginxionS <span aria-hidden="true">↗</span>
+              </a>
+            </div>
+
+            <div class="nginxions-visual" aria-hidden="true">
+              <div class="nginxions-orbit nginxions-orbit-outer"></div>
+              <div class="nginxions-orbit nginxions-orbit-inner"></div>
+              <div class="nginxions-node nginxions-node-top">WAF</div>
+              <div class="nginxions-node nginxions-node-left">mTLS</div>
+              <div class="nginxions-node nginxions-node-right">IDS</div>
+              <div class="nginxions-core">
+                <span class="nginxions-core-mark">N</span>
+                <span class="nginxions-core-name">NGINXION<span>S</span></span>
+                <span class="nginxions-core-caption">SECURE PROXY</span>
+              </div>
+              <div class="nginxions-node nginxions-node-bottom">ANALYTICS</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   </section>
 
   <!-- Contacts -->
@@ -961,4 +1016,271 @@
       max-width: 20rem;
     }
   }
+
+  /* ─── Featured product: NginxionS ─────────────────────────── */
+  .nginxions-section {
+    width: 100%;
+    margin-top: clamp(3rem, 6vw, 5.5rem);
+  }
+
+  .nginxions-card {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
+    border-radius: 1.25rem;
+    background:
+      radial-gradient(ellipse at 82% 48%, rgba(244, 63, 94, 0.13), transparent 43%),
+      linear-gradient(125deg, var(--background-inset), var(--background) 72%);
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+
+  .nginxions-glow {
+    position: absolute;
+    z-index: -1;
+    top: -18rem;
+    right: -9rem;
+    width: 38rem;
+    height: 38rem;
+    border-radius: 50%;
+    background: rgba(244, 63, 94, 0.12);
+    filter: blur(90px);
+    pointer-events: none;
+  }
+
+  .nginxions-content {
+    position: relative;
+    padding: clamp(1.5rem, 4vw, 3.5rem);
+  }
+
+  .nginxions-topline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: clamp(2.5rem, 5vw, 4.5rem);
+  }
+
+  .nginxions-eyebrow,
+  .nginxions-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: var(--foreground-muted);
+    font-size: 0.78rem;
+    font-weight: 650;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+  }
+
+  .nginxions-status-dot {
+    width: 0.48rem;
+    height: 0.48rem;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 14px var(--accent);
+  }
+
+  .nginxions-label {
+    padding: 0.45rem 0.7rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    letter-spacing: 0.06em;
+  }
+
+  .nginxions-main {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(18rem, 0.85fr);
+    align-items: center;
+    gap: clamp(2rem, 5vw, 5rem);
+  }
+
+  .nginxions-copy {
+    max-width: 47rem;
+  }
+
+  .nginxions-overline {
+    margin: 0 0 0.35rem;
+    color: var(--foreground-muted);
+    font-size: clamp(1.1rem, 2vw, 1.45rem);
+    font-weight: 500;
+  }
+
+  .nginxions-copy h2 {
+    margin: 0;
+    color: var(--foreground);
+    font-size: clamp(3.2rem, 7vw, 6.5rem);
+    font-weight: 750;
+    letter-spacing: -0.075em;
+    line-height: 0.98;
+  }
+
+  .nginxions-copy h2 span,
+  .nginxions-core-name span {
+    color: var(--accent);
+  }
+
+  .nginxions-subtitle {
+    max-width: 39rem;
+    margin: 1.2rem 0 0;
+    color: var(--accent);
+    font-size: clamp(1rem, 1.7vw, 1.3rem);
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: -0.025em;
+  }
+
+  .nginxions-description {
+    max-width: 42rem;
+    margin: 1.15rem 0 0;
+    color: var(--foreground-muted);
+    font-size: clamp(1rem, 1.4vw, 1.15rem);
+    line-height: 1.75;
+  }
+
+  .nginxions-features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    margin-top: 1.5rem;
+  }
+
+  .nginxions-features span {
+    padding: 0.48rem 0.72rem;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    background: color-mix(in srgb, var(--background) 72%, transparent);
+    color: var(--foreground-muted);
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+
+  .nginxions-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.8rem;
+    min-height: 2.9rem;
+    margin-top: 2rem;
+    padding: 0.75rem 1.1rem;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm, 0.55rem);
+    background: var(--accent);
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 650;
+    text-decoration: none;
+    transition: transform 160ms ease, box-shadow 160ms ease;
+  }
+
+  .nginxions-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(244, 63, 94, 0.28);
+  }
+
+  .nginxions-visual {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 100%;
+    max-width: 28rem;
+    aspect-ratio: 1;
+    justify-self: center;
+  }
+
+  .nginxions-orbit {
+    position: absolute;
+    border: 1px solid rgba(244, 63, 94, 0.22);
+    border-radius: 50%;
+  }
+
+  .nginxions-orbit-outer {
+    inset: 4%;
+    transform: rotate(-24deg) scaleY(0.72);
+    box-shadow: 0 0 55px rgba(244, 63, 94, 0.08);
+  }
+
+  .nginxions-orbit-inner {
+    inset: 17%;
+    border-style: dashed;
+    transform: rotate(28deg) scaleY(0.78);
+  }
+
+  .nginxions-core {
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 43%;
+    aspect-ratio: 1;
+    border: 1px solid rgba(244, 63, 94, 0.5);
+    border-radius: 1.4rem;
+    background: linear-gradient(145deg, color-mix(in srgb, var(--background) 80%, #f43f5e 20%), var(--background-inset));
+    box-shadow: 0 0 0 0.6rem rgba(244, 63, 94, 0.045), 0 0 65px rgba(244, 63, 94, 0.2), inset 0 1px 0 rgba(255,255,255,0.08);
+    transform: rotate(-8deg);
+  }
+
+  .nginxions-core-mark {
+    color: var(--accent);
+    font-size: clamp(2.7rem, 5vw, 4.5rem);
+    font-weight: 800;
+    letter-spacing: -0.1em;
+    line-height: 1;
+  }
+
+  .nginxions-core-name {
+    margin-top: 0.3rem;
+    color: var(--foreground);
+    font-size: clamp(0.55rem, 1vw, 0.8rem);
+    font-weight: 800;
+    letter-spacing: 0.08em;
+  }
+
+  .nginxions-core-caption {
+    margin-top: 0.2rem;
+    color: var(--foreground-muted);
+    font-size: 0.48rem;
+    font-weight: 650;
+    letter-spacing: 0.16em;
+  }
+
+  .nginxions-node {
+    position: absolute;
+    z-index: 3;
+    display: grid;
+    place-items: center;
+    min-width: 3.8rem;
+    min-height: 2.4rem;
+    padding: 0.35rem 0.65rem;
+    border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+    border-radius: 0.65rem;
+    background: var(--background);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.16), 0 0 20px rgba(244, 63, 94, 0.08);
+    color: var(--foreground);
+    font-size: 0.65rem;
+    font-weight: 750;
+    letter-spacing: 0.08em;
+  }
+
+  .nginxions-node-top { top: 7%; left: 50%; transform: translateX(-50%); }
+  .nginxions-node-left { top: 48%; left: 0; }
+  .nginxions-node-right { top: 48%; right: 0; }
+  .nginxions-node-bottom { bottom: 7%; left: 50%; transform: translateX(-50%); }
+
+  @media (max-width: 767px) {
+    .nginxions-content { padding: 1.35rem; }
+    .nginxions-topline { align-items: flex-start; margin-bottom: 2.25rem; }
+    .nginxions-eyebrow, .nginxions-label { font-size: 0.62rem; }
+    .nginxions-label { text-align: center; }
+    .nginxions-main { grid-template-columns: 1fr; gap: 1.5rem; }
+    .nginxions-copy h2 { font-size: clamp(3.1rem, 17vw, 5rem); }
+    .nginxions-description { font-size: 0.98rem; }
+    .nginxions-visual { width: min(100%, 22rem); }
+    .nginxions-link { width: 100%; justify-content: center; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nginxions-link { transition: none; }
+  }
+
 </style>
