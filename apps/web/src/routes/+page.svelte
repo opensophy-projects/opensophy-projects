@@ -356,7 +356,19 @@
 
   <!-- Products -->
   <section class="section-block products-section w-full px-4" aria-label="Продукты">
-    <!-- NginxionS: длинная карточка с эффектом пламени -->
+    <!-- Акцентная панель: ui · mtls · docs в одну линию -->
+    <div class="products-panel">
+      <p class="section-overline"><Badge variant="default">Продукты</Badge></p>
+
+      <div class="projects-grid">
+        {#each projects as project (project.title)}
+          {@render projectCard(project)}
+        {/each}
+      </div>
+    </div>
+  </section>
+
+      <!-- NginxionS: длинная карточка с эффектом пламени -->
     <div class="nginxions-slot">
       <FlameWrap
         color={flameColor}
@@ -378,7 +390,6 @@
               </div>
               <div class="project-card-header">
                 <span class="project-slug">NginxionS</span>
-                <span class="project-status project-status-badge">Open Source · Self-hosted</span>
               </div>
             </div>
 
@@ -391,11 +402,6 @@
               Управляйте всем из единого интерфейса — без зависимости от облачных сервисов.
             </p>
 
-            <div class="nginxions-features" aria-label="Возможности NginxionS">
-              {#each nginxionsFeatures as f (f)}
-                <span>{f}</span>
-              {/each}
-            </div>
 
             <a
               class="project-status project-status-link nginxions-link"
@@ -407,18 +413,6 @@
         </div>
       </FlameWrap>
     </div>
-
-    <!-- Акцентная панель: ui · mtls · docs в одну линию -->
-    <div class="products-panel">
-      <p class="section-overline"><Badge variant="default">Продукты</Badge></p>
-
-      <div class="projects-grid">
-        {#each projects as project (project.title)}
-          {@render projectCard(project)}
-        {/each}
-      </div>
-    </div>
-  </section>
 
   <!-- Contacts -->
   <section class="section-block contact-section" aria-label="Контакты">
