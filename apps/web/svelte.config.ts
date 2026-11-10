@@ -212,7 +212,7 @@ function transformChartBlocks(content: string) {
 
 
 
-const MARKDOWN_COMPONENTS = ['Admonition', 'Card', 'Cards', 'Chart', 'Columns', 'Faq', 'Katex', 'Step', 'Steps'] as const;
+const MARKDOWN_COMPONENTS = ['Admonition', 'Card', 'Cards', 'Chart', 'Columns', 'Faq', 'Katex', 'Step', 'Steps', 'Testimonial'] as const;
 
 function injectMarkdownComponentImports(content: string, filename: string) {
 	// Check if this is a .svx file (use includes() for robustness)
@@ -235,7 +235,7 @@ function injectMarkdownComponentImports(content: string, filename: string) {
 	const importBlock = usedComponents
 		.map(
 			(component) =>
-				`import ${component} from '$lib/components/docs/markdown/${component}.svelte';`
+				`import ${component} from '$lib/components/${component === 'Testimonial' ? 'ui-registry' : 'docs/markdown'}/${component}.svelte';`
 		)
 		.join('\n\t');
 
