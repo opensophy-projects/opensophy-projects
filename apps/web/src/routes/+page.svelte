@@ -6,9 +6,10 @@
 </svelte:head>
 
 <script lang="ts">
-  import { onMount } from "svelte";
+  import { onMount, type Component } from "svelte";
   import AsciiObject from "$lib/components/ui-registry/AsciiObject.svelte";
   import ArcFlame from "$lib/components/ui-registry/ArcFlame.svelte";
+  import FlameWrap from "$lib/components/ui-registry/FlameWrap.svelte";
   import SiteMenu from "$lib/components/ui-registry/SiteMenu.svelte";
   import LogoCarousel from "$lib/components/ui-registry/logo-carousel.svelte";
   import Badge from "$lib/components/ui-registry/Badge.svelte";
@@ -17,6 +18,10 @@
   import Terminal from "$lib/components/ui-registry/Terminal.svelte";
   import Radar from "$lib/components/ui-registry/Radar.svelte";
   import GhostCursor from "$lib/components/ui-registry/GhostCursor.svelte";
+  import DocumentMultiple_01 from "carbon-icons-svelte/lib/DocumentMultiple_01.svelte";
+  import QHintonPlot from "carbon-icons-svelte/lib/QHintonPlot.svelte";
+  import Network_3 from "carbon-icons-svelte/lib/Network_3.svelte";
+  import IbmCloudGateKeeper from "carbon-icons-svelte/lib/IbmCloudGateKeeper.svelte";
   import { contactsState } from "$lib/stores/contacts.svelte";
 
   // ─── Нам доверяют ─────────────────────────────────────────────
@@ -51,7 +56,6 @@
   let measureEl = $state<HTMLElement | undefined>();
 
   // Hero: ASCII-логотип. GhostCursor плавно гаснет, когда курсор приближается к нему
-  // (без маски-«дырки», поэтому никакого круга под логотипом нет).
   let logoEl = $state<HTMLElement | undefined>();
   let ghostOpacity = $state(1);
 
@@ -125,6 +129,54 @@
   // Цвет пламени совпадает с акцентом сайта (#f43f5e)
   const flameColor: [number, number, number] = [0.956, 0.247, 0.369];
 
+  // ─── Продукты ─────────────────────────────────────────────────
+  type Project = {
+    title: string;
+    description: string;
+    icon: Component<{ size?: number; class?: string }>;
+    statusLabel: string;
+    href: string;
+  };
+
+  // Порядок: ui → mtls → docs
+  const projects: Project[] = [
+    {
+      title: "os.ui",
+      icon: QHintonPlot,
+      description:
+        "Библиотека готовых UI-компонентов с живым превью и гибкими настройками. Включает анимации, интерактивные блоки и фирменные компоненты Opensophy — для разработчиков и дизайнеров.",
+      statusLabel: "Проект в релизе",
+      href: "https://opensophy.com/components/overview",
+    },
+    {
+      title: "os.mtls",
+      icon: Network_3,
+      description:
+        "Инструмент для быстрого создания и управления mTLS-сертификатами для Traefik. Позволяет надёжно закрыть доступ к сервисам и серверам без лишних сложностей.",
+      statusLabel: "Проект в релизе",
+      href: "https://opensophy.com/mtls",
+    },
+    {
+      title: "os.docs",
+      icon: DocumentMultiple_01,
+      description:
+        "Платформа для документации и публикации контента. Подходит для технических команд, авторов и всех, кто хочет структурированно делиться знаниями.",
+      statusLabel: "Проект в релизе",
+      href: "https://opensophy.com/docs/opensophy-docs",
+    },
+  ];
+
+  const nginxionsFeatures = [
+    "AI-powered WAF",
+    "CrowdSec",
+    "CA & mTLS",
+    "Traffic Analytics",
+    "Role Management",
+  ];
+
+  function isExternal(href: string) {
+    return /^https?:\/\//.test(href);
+  }
 </script>
 
 <a
@@ -164,8 +216,6 @@
       />
     </div>
 
-    <!-- GhostCursor: ПК и планшет, не на телефоне. Маска вырезает область под дугой,
-         а прозрачность плавно падает до нуля, когда курсор рядом с ASCII-логотипом. -->
     {#if !isPhone}
       <GhostCursor color="#f43f5e" zIndex={1} class="hero-ghost" />
     {/if}
@@ -287,7 +337,6 @@
       </article>
       <article class="component-cell">
         <div class="component-visual component-visual-radar">
-          <!-- Радар следит за курсором только в пределах своего элемента, а не по всей странице -->
           <Radar scope="self" />
         </div>
         <div class="component-copy">
@@ -303,36 +352,72 @@
     <div class="services-actions showcase-actions">
       <a class="services-action services-action-primary" href="/solutions">Посмотреть все услуги</a>
     </div>
+  </section>
 
-    <!-- Featured product: NginxionS -->
-    <section class="nginxions-section" aria-labelledby="nginxions-title">
-      <article class="nginxions-card">
-        <div class="nginxions-heading">
-          <p class="nginxions-overline">Встречайте</p>
-          <span class="nginxions-label">Open Source · Self-hosted</span>
+  <!-- Products -->
+  <section class="section-block products-section w-full px-4" aria-label="Продукты">
+    <!-- NginxionS: длинная карточка с эффектом пламени -->
+    <div class="nginxions-slot">
+      <FlameWrap
+        color={flameColor}
+        radius={12}
+        height={90}
+        spread={8}
+        intensity={0.5}
+        sparks={1.2}
+        smoke={1}
+        scorch={0}
+      >
+        <div class="project-shell inset-shadow relative overflow-hidden rounded-xl bg-background-inset p-1.5">
+          <article class="project-card nginxions-card card rounded-lg bg-background">
+            <div class="project-card-top">
+              <div
+                class="project-icon inset-shadow grid size-10 shrink-0 place-items-center rounded-sm bg-background-inset text-accent"
+              >
+                <IbmCloudGateKeeper size={22} />
+              </div>
+              <div class="project-card-header">
+                <span class="project-slug">NginxionS</span>
+                <span class="project-status project-status-badge">Open Source · Self-hosted</span>
+              </div>
+            </div>
+
+            <p class="nginxions-subtitle">
+              Next-Generation Open Source Proxy &amp; Application Security Platform
+            </p>
+            <p class="project-desc">
+              Обратный прокси на Nginx со встроенной защитой: WAF на машинном обучении, CrowdSec,
+              собственный центр сертификации и mTLS, аналитика трафика и гибкая система ролей.
+              Управляйте всем из единого интерфейса — без зависимости от облачных сервисов.
+            </p>
+
+            <div class="nginxions-features" aria-label="Возможности NginxionS">
+              {#each nginxionsFeatures as f (f)}
+                <span>{f}</span>
+              {/each}
+            </div>
+
+            <a
+              class="project-status project-status-link nginxions-link"
+              href="https://github.com/opensophy-projects/NginxionS"
+              target="_blank"
+              rel="noopener noreferrer"
+            >Изучить NginxionS <span aria-hidden="true">↗</span></a>
+          </article>
         </div>
-        <h2 id="nginxions-title">Nginxion<span>S</span></h2>
-        <p class="nginxions-subtitle">Next-Generation Open Source Proxy &amp; Application Security Platform</p>
-        <p class="nginxions-description">
-          Обратный прокси на Nginx со встроенной защитой: WAF на машинном обучении, CrowdSec,
-          собственный центр сертификации и mTLS, аналитика трафика и гибкая система ролей.
-          Управляйте всем из единого интерфейса — без зависимости от облачных сервисов.
-        </p>
-        <div class="nginxions-features" aria-label="Возможности NginxionS">
-          <span>AI-powered WAF</span>
-          <span>CrowdSec</span>
-          <span>CA &amp; mTLS</span>
-          <span>Traffic Analytics</span>
-          <span>Role Management</span>
-        </div>
-        <a
-          class="nginxions-link"
-          href="https://github.com/opensophy-projects/NginxionS"
-          target="_blank"
-          rel="noopener noreferrer"
-        >Изучить NginxionS <span aria-hidden="true">↗</span></a>
-      </article>
-    </section>
+      </FlameWrap>
+    </div>
+
+    <!-- Акцентная панель: ui · mtls · docs в одну линию -->
+    <div class="products-panel">
+      <p class="section-overline"><Badge variant="default">Продукты</Badge></p>
+
+      <div class="projects-grid">
+        {#each projects as project (project.title)}
+          {@render projectCard(project)}
+        {/each}
+      </div>
+    </div>
   </section>
 
   <!-- Contacts -->
@@ -359,6 +444,34 @@
   </section>
 </main>
 
+<!-- Карточка продукта: внешний inset-слой + внутренняя карточка -->
+{#snippet projectCard(project: Project)}
+  {@const Icon = project.icon}
+  <div class="project-shell inset-shadow relative overflow-hidden rounded-xl bg-background-inset p-1.5">
+    <article class="project-card card rounded-lg bg-background">
+      <div class="project-card-top">
+        <div
+          class="project-icon inset-shadow grid size-10 shrink-0 place-items-center rounded-sm bg-background-inset text-accent"
+        >
+          <Icon size={22} />
+        </div>
+        <div class="project-card-header">
+          <span class="project-slug">{project.title}</span>
+          <a
+            href={project.href}
+            target={isExternal(project.href) ? "_blank" : undefined}
+            rel={isExternal(project.href) ? "noreferrer" : undefined}
+            class="project-status project-status-link"
+          >
+            {project.statusLabel}
+          </a>
+        </div>
+      </div>
+      <p class="project-desc">{project.description}</p>
+    </article>
+  </div>
+{/snippet}
+
 {#snippet sponsorFace(s: Sponsor)}
   {#if s.logo}
     <img src={s.logo} alt={s.name} class="sponsor-logo" loading="lazy" decoding="async" />
@@ -381,15 +494,12 @@
     position: relative;
     min-height: 40rem;
     padding: 6rem 0 5rem;
-    /* Эллипс дуги (для маски GhostCursor): полуоси и центр */
     --arc-rx: 82.5%;
     --arc-ry: 21rem;
     --arc-cy: calc(100% + 17rem);
-    /* Плавность затухания GhostCursor возле логотипа — задаётся из JS */
     --ghost-opacity: 1;
   }
 
-  /* Карточка со свечением: растянута на всю секцию, скруглена снизу */
   .hero-card {
     position: absolute;
     top: 0;
@@ -400,12 +510,10 @@
     overflow: hidden;
     box-shadow: none;
     pointer-events: none;
-    /* Плавное растворение внизу — никакой резкой границы между секциями */
     -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 6rem), transparent 100%);
     mask-image: linear-gradient(to bottom, #000 calc(100% - 6rem), transparent 100%);
   }
 
-  /* Мягкое облако света над горизонтом */
   .hero-halo {
     position: absolute;
     inset: 0;
@@ -424,8 +532,6 @@
       );
   }
 
-  /* Огромный тёмный «шар» — его верхний край даёт изогнутую светящуюся линию */
-  /* Эллипс с центром на нижней кромке: дуга идёт от угла до угла */
   .hero-arc {
     position: absolute;
     left: 50%;
@@ -462,10 +568,6 @@
     padding: 0 1.25rem;
   }
 
-  /* GhostCursor:
-     1) маска скрывает всё, что внутри эллипса дуги (параметры --arc-* совпадают с .hero-arc);
-     2) opacity плавно уходит в 0 рядом с ASCII-логотипом (значение считается в JS).
-     Никаких «дырок» в маске — поэтому круга вокруг логотипа больше нет. */
   :global(.hero-ghost) {
     opacity: var(--ghost-opacity, 1);
     transition: opacity 250ms ease-out;
@@ -481,7 +583,6 @@
     );
   }
 
-  /* Стиль как у блока «Opensophy занимается…» */
   .hero-lead {
     margin: 0;
     font-size: clamp(1.75rem, 3.5vw, 2.6rem);
@@ -545,7 +646,6 @@
       row-gap: 0.5rem;
     }
 
-    /* Мобильный порядок: заголовок → логотип → кнопки */
     .hero-lead {
       grid-column: 1;
       grid-row: auto;
@@ -570,7 +670,6 @@
     }
   }
 
-  /* Телефон: в hero остаётся только логотип (h1 скрыт визуально, но есть для SEO/скринридеров) */
   @media (max-width: 767px) {
     .hero-lead {
       position: absolute;
@@ -695,7 +794,7 @@
     transform: translate(-50%, 0);
   }
 
-  /* ─── About us (между спонсорами и сеткой направлений) ──────── */
+  /* ─── About us ─────────────────────────────────────────────── */
   .about-us-section {
     padding-bottom: clamp(2.5rem, 5vw, 4.5rem);
   }
@@ -712,7 +811,6 @@
   }
 
   /* ─── Component showcase ─────────────────────────────────── */
-  /* Ширина совпадает с границами свечения (hero-card): 92rem */
   .component-showcase {
     width: calc(100% - 2rem);
     max-width: 92rem;
@@ -721,7 +819,6 @@
     box-sizing: border-box;
   }
 
-  /* 4 карточки: 4 колонки на ПК, 2×2 на планшете, 1 колонка на телефоне */
   .component-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -734,7 +831,6 @@
     margin-top: clamp(2rem, 4vw, 3.5rem);
   }
 
-  /* Мобильный: три кнопки друг под другом, на всю ширину */
   @media (max-width: 767px) {
     .component-showcase .showcase-actions {
       flex-direction: column;
@@ -772,7 +868,6 @@
     max-height: none;
   }
 
-  /* Тема радара: линии — цвет текста, заливка — фон, акцент — фирменный розовый */
   .component-visual-radar {
     --hl-ink: var(--foreground);
     --hl-surface: var(--background);
@@ -794,7 +889,6 @@
     letter-spacing: -0.025em;
   }
 
-  /* Стиль текста как в блоке «Opensophy — это инициатива…» */
   .component-copy p {
     margin: 0;
     color: var(--foreground-muted);
@@ -873,39 +967,6 @@
     margin-bottom: 1rem;
   }
 
-  .section-lead {
-    font-size: clamp(1.75rem, 3.5vw, 2.6rem);
-    font-weight: 500;
-    line-height: 1.55;
-    margin: 0;
-    max-width: 100%;
-  }
-
-  .section-headlines {
-    display: flex;
-    flex-direction: column;
-    gap: 0.1rem;
-    margin-bottom: 2.5rem;
-  }
-
-  .section-headline-plain {
-    font-size: clamp(1.75rem, 3.5vw, 2.6rem);
-    font-weight: 500;
-    line-height: 1.55;
-    color: var(--foreground);
-    margin: 0;
-    max-width: 100%;
-  }
-
-  .section-headline-muted {
-    font-size: clamp(1.75rem, 3.5vw, 2.6rem);
-    font-weight: 500;
-    line-height: 1.55;
-    color: var(--foreground-muted);
-    margin: 0;
-    max-width: 100%;
-  }
-
   .services-actions {
     display: flex;
     flex-wrap: wrap;
@@ -936,8 +997,211 @@
     color: #fff;
   }
 
+  /* ─── Products ─────────────────────────────────────────────── */
+  .products-section {
+    position: relative;
+    z-index: 1;
+    padding-bottom: clamp(3rem, 6vw, 6rem);
+  }
+
+  /* NginxionS: ширина как у акцентной панели; отступ сверху — место под языки пламени */
+  .nginxions-slot {
+    width: 100%;
+    max-width: 92rem;
+    margin: 4rem auto 2.5rem;
+    box-sizing: border-box;
+  }
+
+  .nginxions-card {
+    gap: 0.9rem;
+    min-height: 0;
+  }
+
+  .nginxions-subtitle {
+    margin: 0;
+    color: var(--foreground);
+    font-size: clamp(1.05rem, 1.7vw, 1.35rem);
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: -0.02em;
+  }
+
+  .nginxions-card .project-desc {
+    flex: none;
+    max-width: 70rem;
+  }
+
+  .nginxions-features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .nginxions-features span {
+    padding: 0.35rem 0.65rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--background-inset);
+    color: var(--foreground-muted);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+
+  .nginxions-link {
+    align-self: flex-start;
+    gap: 0.4rem;
+    margin-top: 0.25rem;
+  }
+
+  /* Акцентный прямоугольник */
+  .products-panel {
+    width: 100%;
+    max-width: 92rem;
+    margin: 0 auto;
+    box-sizing: border-box;
+    padding: 2.5rem 1.25rem;
+    border-radius: var(--radius-3xl, 3.3rem);
+    background: radial-gradient(
+      farthest-corner at 50% 50%,
+      color-mix(in srgb, color-mix(in srgb, #f43f5e 85%, white) 32%, transparent) 0%,
+      color-mix(in srgb, #f43f5e 32%, transparent) 55%,
+      color-mix(in srgb, color-mix(in srgb, #f43f5e 80%, black) 32%, transparent) 100%
+    );
+  }
+
+  :global(.dark) .products-panel {
+    background: radial-gradient(
+      farthest-corner at 50% 50%,
+      color-mix(in srgb, color-mix(in srgb, #f43f5e 85%, white) 22%, transparent) 0%,
+      color-mix(in srgb, #f43f5e 22%, transparent) 55%,
+      color-mix(in srgb, color-mix(in srgb, #f43f5e 80%, black) 22%, transparent) 100%
+    );
+  }
+
+  /* ui · mtls · docs — одна линия */
+  .projects-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+    max-width: 80rem;
+    margin: 0 auto;
+  }
+
+  @media (max-width: 1023px) {
+    .projects-grid {
+      grid-template-columns: 1fr;
+      max-width: 40rem;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .products-panel {
+      padding: 2rem 0.75rem;
+      border-radius: 1.75rem;
+    }
+  }
+
+  .project-shell {
+    height: 100%;
+    box-sizing: border-box;
+  }
+
+  .project-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    height: 100%;
+    min-height: 11rem;
+    padding: 1.25rem 1.375rem 1.375rem;
+    box-sizing: border-box;
+  }
+
+  .project-card-top {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .project-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+
+  .project-slug {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--foreground);
+  }
+
+  @media (min-width: 768px) {
+    .project-slug {
+      font-size: 1rem;
+    }
+  }
+
+  .project-status {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    border: none;
+    padding: 0;
+    cursor: default;
+  }
+
+  .project-status-badge {
+    text-transform: uppercase;
+    color: var(--foreground-muted);
+    background: var(--background-inset);
+    border: 1px solid var(--border);
+    padding: 0.15rem 0.45rem;
+    border-radius: 999px;
+  }
+
+  .project-status-link {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.9rem;
+    font-weight: 500;
+    font-family: inherit;
+    letter-spacing: normal;
+    text-transform: none;
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, var(--accent) 50%, transparent);
+    text-decoration-style: dotted;
+    text-underline-offset: 4px;
+    color: var(--accent);
+    background: transparent;
+    border: none;
+    padding: 0;
+    border-radius: 0;
+    transition: color 150ms ease-out, text-decoration-color 150ms ease-out;
+    cursor: pointer;
+  }
+
+  .project-status-link:hover {
+    color: var(--foreground);
+    text-decoration-color: var(--foreground-muted);
+  }
+
+  .project-desc {
+    font-size: clamp(1rem, 1.35vw, 1.2rem);
+    font-weight: 500;
+    line-height: 1.45;
+    letter-spacing: -0.02em;
+    color: var(--foreground-muted);
+    margin: 0;
+    flex: 1;
+  }
+
   /* ─── Contacts ─────────────────────────────────────────────── */
-  /* Ширина контактной секции */
   .contact-section {
     width: 92rem;
     max-width: calc(100vw - 2rem);
@@ -978,7 +1242,6 @@
     color: var(--foreground-muted);
   }
 
-  /* ─── Мобильные поправки для контактов ─────────────────────── */
   @media (max-width: 767px) {
     .contact-card {
       padding: 2rem 1.25rem;
@@ -991,119 +1254,4 @@
       max-width: 20rem;
     }
   }
-
-  /* ─── Featured product: NginxionS ─────────────────────────── */
-  .nginxions-section {
-    width: 100%;
-    margin-top: clamp(2.5rem, 5vw, 4rem);
-  }
-
-  .nginxions-card {
-    width: 100%;
-    box-sizing: border-box;
-    padding: clamp(1.5rem, 4vw, 3rem);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg, 0.9rem);
-    background: var(--background-inset);
-  }
-
-  .nginxions-heading {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    margin-bottom: 1rem;
-  }
-
-  .nginxions-overline {
-    margin: 0;
-    color: var(--foreground-muted);
-    font-size: 1rem;
-    font-weight: 500;
-  }
-
-  .nginxions-label {
-    color: var(--foreground-muted);
-    font-size: 0.78rem;
-    font-weight: 600;
-  }
-
-  .nginxions-card h2 {
-    margin: 0;
-    color: var(--foreground);
-    font-size: clamp(2.5rem, 6vw, 4.5rem);
-    font-weight: 700;
-    line-height: 1.05;
-    letter-spacing: -0.06em;
-  }
-
-  .nginxions-card h2 span {
-    color: var(--accent);
-  }
-
-  .nginxions-subtitle {
-    margin: 0.8rem 0 0;
-    color: var(--foreground);
-    font-size: clamp(1rem, 1.7vw, 1.25rem);
-    font-weight: 600;
-    line-height: 1.45;
-  }
-
-  .nginxions-description {
-    max-width: 70rem;
-    margin: 1rem 0 0;
-    color: var(--foreground-muted);
-    font-size: 1rem;
-    line-height: 1.7;
-  }
-
-  .nginxions-features {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-top: 1.25rem;
-  }
-
-  .nginxions-features span {
-    padding: 0.4rem 0.65rem;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm, 0.45rem);
-    color: var(--foreground-muted);
-    font-size: 0.8rem;
-    font-weight: 600;
-  }
-
-  .nginxions-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.6rem;
-    min-height: 2.75rem;
-    margin-top: 1.5rem;
-    padding: 0.65rem 1rem;
-    border-radius: var(--radius-sm, 0.55rem);
-    background: var(--accent);
-    color: #fff;
-    font-size: 0.9rem;
-    font-weight: 600;
-    text-decoration: none;
-  }
-
-  @media (max-width: 767px) {
-    .nginxions-heading {
-      align-items: flex-start;
-      flex-direction: column;
-      gap: 0.35rem;
-    }
-
-    .nginxions-card {
-      padding: 1.35rem;
-    }
-
-    .nginxions-link {
-      width: 100%;
-      justify-content: center;
-      box-sizing: border-box;
-    }
-  }
-
 </style>
