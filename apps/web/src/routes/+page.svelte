@@ -166,14 +166,6 @@
     },
   ];
 
-  const nginxionsFeatures = [
-    "AI-powered WAF",
-    "CrowdSec",
-    "CA & mTLS",
-    "Traffic Analytics",
-    "Role Management",
-  ];
-
   function isExternal(href: string) {
     return /^https?:\/\//.test(href);
   }
@@ -390,6 +382,12 @@
               </div>
               <div class="project-card-header">
                 <span class="project-slug">NginxionS</span>
+                <a
+                  class="project-status project-status-link nginxions-link"
+                  href="https://github.com/opensophy-projects/NginxionS"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >Изучить NginxionS <span aria-hidden="true">↗</span></a>
               </div>
             </div>
 
@@ -402,13 +400,6 @@
               Управляйте всем из единого интерфейса — без зависимости от облачных сервисов.
             </p>
 
-
-            <a
-              class="project-status project-status-link nginxions-link"
-              href="https://github.com/opensophy-projects/NginxionS"
-              target="_blank"
-              rel="noopener noreferrer"
-            >Изучить NginxionS <span aria-hidden="true">↗</span></a>
           </article>
         </div>
       </FlameWrap>
@@ -1044,9 +1035,7 @@
   }
 
   .nginxions-link {
-    align-self: flex-start;
     gap: 0.4rem;
-    margin-top: 0.25rem;
   }
 
   /* Акцентный прямоугольник */
