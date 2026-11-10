@@ -394,7 +394,7 @@
             </div>
 
             <p class="nginxions-subtitle">
-              Next-Generation Open Source Proxy &amp; Application Security Platform
+              Платформа проксирования и безопасности приложений нового поколения с открытым исходным кодом
             </p>
             <p class="project-desc">
               Обратный прокси на Nginx со встроенной защитой: WAF на машинном обучении, CrowdSec,
