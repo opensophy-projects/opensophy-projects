@@ -4,6 +4,7 @@
 	import { onMount } from "svelte";
 	import { cn } from "../../utils/cn";
 	import ChevronRight from "carbon-icons-svelte/lib/ChevronRight.svelte";
+	import MenuIcon from "carbon-icons-svelte/lib/Menu.svelte";
 	import Close from "carbon-icons-svelte/lib/Close.svelte";
 
 	type MenuButton = {
@@ -62,6 +63,16 @@
 		classes?: FloatingMenuClasses;
 		/** px width below which the mobile layout kicks in. Matches Tailwind's default `md` breakpoint. */
 		mobileBreakpoint?: number;
+		/**
+		 * Header like a docs toolbar: buttons on the left (on mobile the menu
+		 * toggle goes first), logo on the right. Desktop triggers stay centred.
+		 */
+		actionsFirst?: boolean;
+		/**
+		 * Menu toggle look: `card` — chevron in an inset card (default),
+		 * `flat` — square inset button with a hamburger icon, as in docs.
+		 */
+		toggleStyle?: "card" | "flat";
 	};
 
 	let {
@@ -77,7 +88,12 @@
 		position = "fixed",
 		classes,
 		mobileBreakpoint = 768,
+		actionsFirst = false,
+		toggleStyle = "card",
 	}: Props = $props();
+
+	const flatToggleClass =
+		"inset-shadow relative inline-flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-sm bg-background-inset text-foreground-muted transition-[color,scale] duration-150 ease-out hover:text-foreground active:scale-[0.95]";
 
 	// Driven entirely in JS so it never depends on the host app's Tailwind
 	// breakpoint config — avoids drift between a `md:` utility class and
@@ -195,6 +211,7 @@
 			data-slot="header"
 			class={cn(
 				"relative z-20 flex w-full shrink-0 items-center justify-between gap-4 bg-background px-3 py-1.5",
+				actionsFirst && "fm-actions-first",
 				classes?.header,
 			)}
 		>
@@ -286,19 +303,31 @@
 				{/if}
 
 				<!-- Hamburger toggle: mobile only, rendered only when isMobile is true -->
-				<span class={cn("mobile-menu-toggle inset-shadow inline-flex rounded-xl bg-background-inset p-1.5", classes?.toggleButton)}>
+				<span
+					class={cn(
+						"mobile-menu-toggle",
+						toggleStyle === "card" && "inset-shadow inline-flex rounded-xl bg-background-inset p-1.5",
+						classes?.toggleButton,
+					)}
+				>
 						<button
 							type="button"
 							onclick={toggleMobile}
 							data-slot="toggle-button"
 							data-open={isMobileOpen}
-							class="card group relative inline-flex size-9 items-center justify-center rounded-lg border border-border bg-background text-foreground transition-colors duration-150 hover:border-accent/60 active:scale-[0.95]"
+							class={toggleStyle === "flat"
+								? flatToggleClass
+								: "card group relative inline-flex size-9 items-center justify-center rounded-lg border border-border bg-background text-foreground transition-colors duration-150 hover:border-accent/60 active:scale-[0.95]"}
 							aria-expanded={isMobileOpen}
 							aria-label={isMobileOpen ? "Закрыть меню" : "Открыть меню"}
 						>
 							<span class="sr-only">{isMobileOpen ? "Закрыть меню" : "Открыть меню"}</span>
 							<span class="menu-toggle-icon menu-toggle-open">
-								<ChevronRight size={16} class="rotate-90" />
+								{#if toggleStyle === "flat"}
+									<MenuIcon size={16} />
+								{:else}
+									<ChevronRight size={16} class="rotate-90" />
+								{/if}
 							</span>
 							<span class="menu-toggle-icon menu-toggle-close">
 								<Close size={16} />
@@ -402,6 +431,15 @@
 		.mobile-menu-toggle {
 			display: inline-flex !important;
 		}
+		/* На телефоне кнопка меню идёт первой */
+		.fm-actions-first [data-slot="actions"] .mobile-menu-toggle {
+			order: -1;
+		}
+	}
+
+	/* Кнопки слева, логотип справа — как в шапке документации */
+	.fm-actions-first {
+		flex-direction: row-reverse;
 	}
 
 	.menu-wrapper {

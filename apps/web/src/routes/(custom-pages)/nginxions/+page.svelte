@@ -88,7 +88,7 @@
 
 	<!-- ─── Возможности ─── -->
 	<section class="block" aria-labelledby="features-title">
-		<p class="overline"><Badge variant="default">Возможности</Badge></p>
+		<p class="section-label"><Badge variant="default">Возможности</Badge></p>
 		<h2 id="features-title" class="block-title">Всё для защиты сервисов в&nbsp;одном интерфейсе</h2>
 		<ul class="features">
 			{#each nginxionsFeatures as feature, i (feature.name)}
@@ -105,7 +105,7 @@
 
 	<!-- ─── Принципы ─── -->
 	<section class="block" aria-labelledby="principles-title">
-		<p class="overline"><Badge variant="default">Принципы</Badge></p>
+		<p class="section-label"><Badge variant="default">Принципы</Badge></p>
 		<h2 id="principles-title" class="block-title">Как устроен NginxionS</h2>
 		<ul class="principles">
 			{#each nginxionsPrinciples as principle (principle.name)}
@@ -217,7 +217,7 @@
 		box-sizing: border-box;
 	}
 
-	.overline {
+	.section-label {
 		display: flex;
 		justify-content: center;
 		margin: 0 0 1rem;

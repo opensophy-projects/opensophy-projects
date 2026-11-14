@@ -18,7 +18,11 @@
 			</h2>
 		</div>
 		<div class="ngx-head-copy">
-			<p class="ngx-desc">{product.description}</p>
+			<p class="ngx-desc">
+				<span class="ngx-desc-strong">Обратный прокси на nginx со встроенной защитой:</span>
+				WAF на машинном обучении, CrowdSec, свой центр сертификации и mTLS, аналитика трафика и роли.
+				<span class="ngx-desc-strong">Всё настраивается в одном интерфейсе и работает без облака.</span>
+			</p>
 			<a class="ngx-more" href={nginxionsLinks.github} target="_blank" rel="noopener noreferrer">
 				Подробнее <ArrowRight size={16} />
 			</a>
@@ -82,12 +86,10 @@
 	}
 
 	.ngx-name {
-		margin: 0 0 0.9rem;
-		font-family: var(--font-mono);
-		font-size: 0.8rem;
+		margin: 0 0 0.75rem;
+		font-size: clamp(1.1rem, 1.4vw, 1.4rem);
 		font-weight: 600;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
+		letter-spacing: -0.025em;
 		color: var(--accent);
 	}
 
@@ -105,12 +107,17 @@
 		padding-top: clamp(0rem, 2.2vw, 1.9rem);
 	}
 
+	/* Как тексты услуг на главной: светлые акценты на сером тексте */
 	.ngx-desc {
 		margin: 0;
-		font-size: clamp(1.05rem, 1.45vw, 1.3rem);
-		font-weight: 400;
+		font-size: clamp(1.1rem, 1.5vw, 1.45rem);
+		font-weight: 500;
 		line-height: 1.45;
-		letter-spacing: -0.015em;
+		letter-spacing: -0.02em;
+		color: var(--foreground-muted);
+	}
+
+	.ngx-desc-strong {
 		color: var(--foreground);
 	}
 
@@ -120,9 +127,9 @@
 		gap: 0.4rem;
 		margin-top: 1.5rem;
 		font-size: 0.95rem;
-		font-weight: 500;
+		font-weight: 600;
 		text-decoration: none;
-		color: var(--foreground-muted);
+		color: var(--accent);
 		transition: color 150ms ease-out;
 	}
 
@@ -131,7 +138,7 @@
 	}
 
 	.ngx-more:hover {
-		color: var(--accent);
+		color: var(--foreground);
 	}
 
 	.ngx-more:hover :global(svg) {
