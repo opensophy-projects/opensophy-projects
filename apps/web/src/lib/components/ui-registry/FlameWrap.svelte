@@ -49,6 +49,12 @@ export interface FlameWrapElements {
   content: HTMLElement;
   /** Canvas the WebGL effect renders to. */
   output: HTMLCanvasElement;
+  /**
+   * Content lives inside the source canvas (experimental HTML-in-canvas).
+   * Off by default: the content stays regular DOM and only the flames are
+   * drawn, which works the same in every browser.
+   */
+  htmlInCanvas?: boolean;
 }
 
 export interface FlameWrapInstance {
@@ -432,6 +438,7 @@ export function createFlameWrap(
   const sourceCtx = source.getContext("2d") as ElementImageContext | null;
   const paintable = source as PaintableCanvas;
   const htmlInCanvas = Boolean(
+    elements.htmlInCanvas &&
     sourceCtx &&
     typeof sourceCtx.drawElementImage === "function" &&
     typeof paintable.requestPaint === "function",
@@ -714,9 +721,16 @@ export function createFlameWrap(
   interface Props extends FlameWrapOptions {
     class?: string;
     children?: import("svelte").Snippet;
+    /**
+     * Экспериментальный режим Chrome «HTML в canvas» (drawElementImage).
+     * Выключен по умолчанию: в браузерах, где API уже есть, но работает
+     * нестабильно (Chrome на Android), содержимое пропадало, а обёртка
+     * схлопывалась. Без него содержимое остаётся обычной разметкой.
+     */
+    htmlInCanvas?: boolean;
   }
 
-  let { class: className = "", children, ...options }: Props = $props();
+  let { class: className = "", children, htmlInCanvas = false, ...options }: Props = $props();
 
   let sourceEl = $state<HTMLCanvasElement>()!;
   let contentEl = $state<HTMLDivElement>()!;
@@ -728,14 +742,14 @@ export function createFlameWrap(
   const glow = $derived(Math.round(Math.max(options.spread ?? 8, 8) * 3) + 16);
 
   onMount(() => {
-    native = supportsHtmlInCanvas();
+    native = htmlInCanvas && supportsHtmlInCanvas();
     let disposed = false;
     (async () => {
       await tick();
       if (disposed) return;
       if (!sourceEl || !contentEl || !outputEl) return;
       instance = createFlameWrap(
-        { source: sourceEl, content: contentEl, output: outputEl },
+        { source: sourceEl, content: contentEl, output: outputEl, htmlInCanvas: native },
         options,
       );
       if (native && !instance) {

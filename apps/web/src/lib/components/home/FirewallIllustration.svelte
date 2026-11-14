@@ -59,17 +59,22 @@
 
 	// Запросы: старт за левым краем, удар — точка на стекле.
 	// Обычный запрос проходит сквозь стекло дальше к дракону (`to`),
-	// заблокированный останавливается со знаком «×» и причиной (`reason`).
-	type Req = { from: [number, number]; at: [number, number]; to?: [number, number]; reason?: string; delay: number };
+	// заблокированный останавливается со знаком «×» и причиной. Причины
+	// (`reasons`) сменяются по кругу — по одной на каждый цикл анимации.
+	type Req = { from: [number, number]; at: [number, number]; to?: [number, number]; reasons?: string[]; delay: number };
 	const requests: Req[] = [
-		{ from: [24, 352], at: toScreen(FRONT, -84, -58), reason: 'бот', delay: 0 },
+		{ from: [24, 352], at: toScreen(FRONT, -84, -58), reasons: ['бот', 'сканер уязвимостей', 'брутфорс входа', 'бан CrowdSec', 'плохая репутация IP'], delay: 0 },
 		{ from: [34, 430], at: toScreen(FRONT, -72, -6), to: [452, 262], delay: 0.9 },
-		{ from: [44, 520], at: toScreen(FRONT, -48, 44), reason: 'SQL-инъекция', delay: 1.8 },
+		{ from: [44, 520], at: toScreen(FRONT, -48, 44), reasons: ['SQL-инъекция', 'XSS', 'path traversal', 'лимит запросов', 'нет mTLS-сертификата', 'RCE'], delay: 1.8 },
 		{ from: [118, 574], at: toScreen(FRONT, -22, 86), to: [500, 330], delay: 2.7 }
 	];
 
 	const f1 = (n: number) => n.toFixed(1);
+	const labelWidth = (text: string) => text.length * LABEL_CHAR + 16;
 	const LABEL_CHAR = 6.8; // ширина символа моноширинной подписи
+
+	// Номер текущей причины у каждого запроса; растёт с каждым циклом анимации
+	const reasonStep = $state(requests.map(() => 0));
 
 	const impacts = requests.map((r) => {
 		const [x1, y1] = r.from;
@@ -80,14 +85,13 @@
 		const hy = y2 - Math.sin(ang) * 10;
 		return {
 			...r,
-			blocked: Boolean(r.reason),
+			blocked: Boolean(r.reasons?.length),
 			x2,
 			y2,
 			deg: f1((ang * 180) / Math.PI),
 			head: `translate(${f1(hx)} ${f1(hy)})`,
 			front: `M${String(x1)},${String(y1)} L${f1(x2)},${f1(y2)}`,
 			behind: r.to ? `M${f1(x2)},${f1(y2)} L${String(r.to[0])},${String(r.to[1])}` : '',
-			labelW: (r.reason?.length ?? 0) * LABEL_CHAR + 16
 		};
 	});
 
@@ -165,12 +169,18 @@
 			<path class="packet packet-front" d={r.front} pathLength="100" />
 			<path class="head" d="M-9,-5 L0,0 L-9,5" transform="{r.head} rotate({r.deg})" />
 			{#if r.blocked}
-				<g class="verdict" transform="translate({f1(r.x2)} {f1(r.y2)})">
+				{@const reason = r.reasons?.[reasonStep[k] % r.reasons.length] ?? ''}
+				{@const labelW = labelWidth(reason)}
+				<g
+					class="verdict"
+					transform="translate({f1(r.x2)} {f1(r.y2)})"
+					onanimationiteration={() => (reasonStep[k] += 1)}
+				>
 					<circle class="verdict-ring" r="9" />
 					<path class="verdict-x" d="M-4,-4 L4,4 M4,-4 L-4,4" />
-					<g transform="translate({f1(-r.labelW / 2)} 16)">
-						<rect class="tag" width={r.labelW} height="20" rx="10" />
-						<text class="tag-text" x={r.labelW / 2} y="14">{r.reason}</text>
+					<g transform="translate({f1(-labelW / 2)} 16)">
+						<rect class="tag" width={labelW} height="20" rx="10" />
+						<text class="tag-text" x={labelW / 2} y="14">{reason}</text>
 					</g>
 				</g>
 			{:else}

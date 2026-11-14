@@ -663,6 +663,9 @@
 
   .sponsors-wrap {
     position: relative;
+    /* Скрытая копия логотипов для замера шире экрана: обрезаем по горизонтали,
+       иначе на мобильных страницу можно сдвинуть вбок */
+    overflow-x: clip;
     display: flex;
     justify-content: center;
     min-height: 7.5rem;

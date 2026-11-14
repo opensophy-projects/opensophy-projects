@@ -176,6 +176,11 @@ export type AsciiSweepElements = {
   slots: [AsciiSweepSlot, AsciiSweepSlot];
   /** Canvas the WebGL effect renders to. */
   output: HTMLCanvasElement;
+  /**
+   * Panels live inside the slot canvases (experimental HTML-in-canvas).
+   * Off by default: panels stay regular DOM and are captured as a fallback.
+   */
+  htmlInCanvas?: boolean;
 }
 
 export type AsciiSweepInstance = {
@@ -1066,6 +1071,7 @@ function initializeAsciiSweep(
 
   const firstCtx: ElementImageContext | null = slots[0].source.getContext("2d");
   const htmlInCanvas = Boolean(
+    elements.htmlInCanvas &&
     firstCtx &&
     typeof firstCtx.drawElementImage === "function" &&
     typeof (slots[0].source as PaintableCanvas).requestPaint === "function",
@@ -1775,6 +1781,12 @@ function initializeAsciiSweep(
     index?: number;
     /** Flip the sweep 180 degrees when sweeping back to the first panel. */
     directional?: boolean;
+    /**
+     * Экспериментальный режим Chrome «HTML в canvas» (drawElementImage).
+     * Выключен по умолчанию: на части устройств (Chrome на Android) API уже
+     * есть, но работает нестабильно — панели пропадали.
+     */
+    htmlInCanvas?: boolean;
   }
 
   let {
@@ -1783,6 +1795,7 @@ function initializeAsciiSweep(
     alternate,
     index = 0,
     directional = true,
+    htmlInCanvas = false,
     ...options
   }: Props = $props();
 
@@ -1817,13 +1830,14 @@ function initializeAsciiSweep(
           { source: sourceBEl, content: contentBEl },
         ],
         output: outputEl,
+        htmlInCanvas: native,
       },
       options,
     );
   }
 
   onMount(() => {
-    native = supportsHtmlInCanvas();
+    native = htmlInCanvas && supportsHtmlInCanvas();
     let disposed = false;
     void (async () => {
       await tick();
