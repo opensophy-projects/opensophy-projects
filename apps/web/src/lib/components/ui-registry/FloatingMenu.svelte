@@ -64,10 +64,10 @@
 		/** px width below which the mobile layout kicks in. Matches Tailwind's default `md` breakpoint. */
 		mobileBreakpoint?: number;
 		/**
-		 * Mobile header like a docs toolbar: buttons on the left (menu first),
-		 * logo on the right.
+		 * Header like a docs toolbar: buttons on the left (on mobile the menu
+		 * toggle goes first), logo on the right. Desktop triggers stay centred.
 		 */
-		mobileActionsFirst?: boolean;
+		actionsFirst?: boolean;
 		/**
 		 * Menu toggle look: `card` — chevron in an inset card (default),
 		 * `flat` — square inset button with a hamburger icon, as in docs.
@@ -88,7 +88,7 @@
 		position = "fixed",
 		classes,
 		mobileBreakpoint = 768,
-		mobileActionsFirst = false,
+		actionsFirst = false,
 		toggleStyle = "card",
 	}: Props = $props();
 
@@ -211,7 +211,7 @@
 			data-slot="header"
 			class={cn(
 				"relative z-20 flex w-full shrink-0 items-center justify-between gap-4 bg-background px-3 py-1.5",
-				mobileActionsFirst && "fm-actions-first",
+				actionsFirst && "fm-actions-first",
 				classes?.header,
 			)}
 		>
@@ -431,13 +431,15 @@
 		.mobile-menu-toggle {
 			display: inline-flex !important;
 		}
-		/* Кнопки слева (меню первой), логотип справа — как в шапке документации */
-		.fm-actions-first {
-			flex-direction: row-reverse;
-		}
+		/* На телефоне кнопка меню идёт первой */
 		.fm-actions-first [data-slot="actions"] .mobile-menu-toggle {
 			order: -1;
 		}
+	}
+
+	/* Кнопки слева, логотип справа — как в шапке документации */
+	.fm-actions-first {
+		flex-direction: row-reverse;
 	}
 
 	.menu-wrapper {

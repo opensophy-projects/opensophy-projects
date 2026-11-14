@@ -295,7 +295,7 @@
 {/snippet}
 
 <FloatingMenu
-  mobileActionsFirst
+  actionsFirst
   toggleStyle="flat"
   triggers={[
     { id: "products", label: "Продукты", panel: productsPanel },
