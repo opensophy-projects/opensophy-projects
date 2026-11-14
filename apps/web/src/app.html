@@ -2,6 +2,17 @@
 <html lang="ru">
 	<head>
 		<meta charset="utf-8" />
+		<script>
+			// Адреса со слешем на конце (/article/linux-hardening/) GitHub Pages
+			// отдаёт как 404: канонические адреса сайта — без слеша. Сразу
+			// переводим на правильный адрес, сохраняя параметры и якорь.
+			(() => {
+				const path = location.pathname;
+				if (path.length > 1 && path.endsWith('/')) {
+					location.replace(path.replace(/\/+$/, '') + location.search + location.hash);
+				}
+			})();
+		</script>
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<link rel="icon" type="image/png" sizes="192x192" href="/favicon.png" />
 		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />

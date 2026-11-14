@@ -510,11 +510,11 @@ void main () {
 export function supportsHtmlInCanvas(): boolean {
   if (typeof document === "undefined") return false;
   const probe = document.createElement("canvas");
-  const ctx = probe.getContext("2d");
+  const ctx: ElementImageContext | null = probe.getContext("2d");
   return Boolean(
     ctx &&
     typeof ctx.drawElementImage === "function" &&
-    typeof probe.requestPaint === "function",
+    typeof (probe as PaintableCanvas).requestPaint === "function",
   );
 }
 
@@ -991,7 +991,7 @@ function initializeAsciiSweep(
   }
 
   let destroyed = false;
-  let wake = () => undefined;
+  let wake: () => void = () => undefined;
 
   function compile(type: number, text: string): WebGLShader {
     const shader = gl!.createShader(type)!;
@@ -1064,7 +1064,7 @@ function initializeAsciiSweep(
     return texture;
   }
 
-  const firstCtx = slots[0].source.getContext("2d");
+  const firstCtx: ElementImageContext | null = slots[0].source.getContext("2d");
   const htmlInCanvas = Boolean(
     firstCtx &&
     typeof firstCtx.drawElementImage === "function" &&
@@ -1097,12 +1097,12 @@ function initializeAsciiSweep(
   }));
 
   if (htmlInCanvas) {
-    for (const state of states) {
-      state.paintable.onpaint = () => {
+    for (const entry of states) {
+      entry.paintable.onpaint = () => {
         try {
-          state.ctx!.reset();
-          drawHtmlInCanvas(state.source, state.ctx!, state.content);
-          state.dirty = true;
+          entry.ctx!.reset();
+          drawHtmlInCanvas(entry.source, entry.ctx!, entry.content);
+          entry.dirty = true;
           wake();
         } catch {
           // Ignore unsupported fallback rendering operations.
@@ -1111,45 +1111,45 @@ function initializeAsciiSweep(
     }
   }
 
-  function queueCapture(state: SlotState, immediate = false) {
+  function queueCapture(entry: SlotState, immediate = false) {
     if (htmlInCanvas || destroyed) return;
     const delay = immediate ? 0 : FALLBACK_CAPTURE_DELAY;
     const deadline = performance.now() + delay;
-    if (state.captureTimer && state.captureDeadline <= deadline) return;
-    window.clearTimeout(state.captureTimer);
-    state.captureDeadline = deadline;
-    state.captureTimer = window.setTimeout(
-      () => captureFallback(state),
+    if (entry.captureTimer && entry.captureDeadline <= deadline) return;
+    window.clearTimeout(entry.captureTimer);
+    entry.captureDeadline = deadline;
+    entry.captureTimer = window.setTimeout(
+      () => captureFallback(entry),
       delay,
     );
   }
 
-  function captureFallback(state: SlotState) {
-    window.clearTimeout(state.captureTimer);
-    window.clearTimeout(state.scrollTimer);
-    state.captureTimer = 0;
-    state.scrollTimer = 0;
+  function captureFallback(entry: SlotState) {
+    window.clearTimeout(entry.captureTimer);
+    window.clearTimeout(entry.scrollTimer);
+    entry.captureTimer = 0;
+    entry.scrollTimer = 0;
     try {
-      paintFallbackSnapshot(state.content, state.source, getCanvasPixelRatio(output, gl!));
+      paintFallbackSnapshot(entry.content, entry.source, getCanvasPixelRatio(output, gl!));
       if (destroyed) return;
-      state.fallbackCanvas = state.source;
-      state.capturedScrollLeft = state.content.scrollLeft;
-      state.capturedScrollTop = state.content.scrollTop;
-      state.dirty = true;
-      state.captureErrorLogged = false;
+      entry.fallbackCanvas = entry.source;
+      entry.capturedScrollLeft = entry.content.scrollLeft;
+      entry.capturedScrollTop = entry.content.scrollTop;
+      entry.dirty = true;
+      entry.captureErrorLogged = false;
       wake();
     } catch (error) {
-      if (!destroyed && !state.captureErrorLogged) {
-        state.captureErrorLogged = true;
+      if (!destroyed && !entry.captureErrorLogged) {
+        entry.captureErrorLogged = true;
         console.warn("AsciiSweep could not capture its HTML fallback:", error);
       }
     }
   }
 
   function requestCapture(immediate = false) {
-    for (const state of states) {
-      if (htmlInCanvas) state.paintable.requestPaint?.();
-      else queueCapture(state, immediate);
+    for (const entry of states) {
+      if (htmlInCanvas) entry.paintable.requestPaint?.();
+      else queueCapture(entry, immediate);
     }
   }
 
@@ -1161,12 +1161,12 @@ function initializeAsciiSweep(
    * the effect is at rest and the real DOM stays live and selectable.
    */
   function applyStacking(shown: 0 | 1) {
-    states.forEach((state, index) => {
+    states.forEach((entry, index) => {
       const front = index === shown;
       // The stacking layer is the source canvas under html-in-canvas, because
       // the two canvases are the siblings that overlap. In the DOM fallback the
       // content element is itself the layer.
-      const layer = htmlInCanvas ? state.source : state.content;
+      const layer = htmlInCanvas ? entry.source : entry.content;
       // Scrollbars are deliberately left alone. Both panels are the same size
       // and scroll together, so whichever is in front shows a scrollbar in the
       // same place. Toggling it per panel would add and remove a scrollbar
@@ -1175,7 +1175,7 @@ function initializeAsciiSweep(
       layer.style.pointerEvents = front ? "" : "none";
       // The captured element carries the page background so the front panel is
       // opaque and fully occludes the one behind it.
-      state.content.style.backgroundColor = backgroundCss;
+      entry.content.style.backgroundColor = backgroundCss;
       // Keep the panel behind out of the tab order and the accessibility tree,
       // so assistive tech never sees both panels at once.
       if (front) layer.removeAttribute("aria-hidden");
@@ -1206,18 +1206,18 @@ function initializeAsciiSweep(
       changed = true;
     }
     if (htmlInCanvas) {
-      for (const state of states) {
-        const sourceWidth = Math.max(1, Math.round(state.source.clientWidth * dpr));
-        const sourceHeight = Math.max(1, Math.round(state.source.clientHeight * dpr));
+      for (const entry of states) {
+        const sourceWidth = Math.max(1, Math.round(entry.source.clientWidth * dpr));
+        const sourceHeight = Math.max(1, Math.round(entry.source.clientHeight * dpr));
         if (
-          state.source.width !== sourceWidth ||
-          state.source.height !== sourceHeight
+          entry.source.width !== sourceWidth ||
+          entry.source.height !== sourceHeight
         ) {
-          state.source.width = sourceWidth;
-          state.source.height = sourceHeight;
+          entry.source.width = sourceWidth;
+          entry.source.height = sourceHeight;
           changed = true;
         }
-        state.paintable.requestPaint?.();
+        entry.paintable.requestPaint?.();
       }
     }
     return changed;
@@ -1274,13 +1274,13 @@ function initializeAsciiSweep(
     return count;
   }
 
-  function uploadSlot(state: SlotState) {
-    const bitmap = htmlInCanvas ? state.source : state.fallbackCanvas;
-    if (!bitmap || !state.dirty) return;
+  function uploadSlot(entry: SlotState) {
+    const bitmap = htmlInCanvas ? entry.source : entry.fallbackCanvas;
+    if (!bitmap || !entry.dirty) return;
     if (bitmap.width < 1 || bitmap.height < 1) return;
-    state.dirty = false;
+    entry.dirty = false;
     try {
-      gl!.bindTexture(gl!.TEXTURE_2D, state.texture);
+      gl!.bindTexture(gl!.TEXTURE_2D, entry.texture);
       gl!.texImage2D(
         gl!.TEXTURE_2D,
         0,
@@ -1290,11 +1290,11 @@ function initializeAsciiSweep(
         bitmap,
       );
       gl!.generateMipmap(gl!.TEXTURE_2D);
-      state.stamp = performance.now();
-      state.uploadErrorLogged = false;
+      entry.stamp = performance.now();
+      entry.uploadErrorLogged = false;
     } catch (error) {
-      if (!state.uploadErrorLogged) {
-        state.uploadErrorLogged = true;
+      if (!entry.uploadErrorLogged) {
+        entry.uploadErrorLogged = true;
         console.warn("AsciiSweep could not upload a panel texture:", error);
       }
     }
@@ -1315,7 +1315,7 @@ function initializeAsciiSweep(
   const controlled = () => config.progress >= 0;
 
   function render(now: number) {
-    for (const state of states) uploadSlot(state);
+    for (const entry of states) uploadSlot(entry);
 
     const from = states[fromSlot];
     const to = states[toSlot];
@@ -1575,7 +1575,7 @@ function initializeAsciiSweep(
     start();
   });
   resizeObserver.observe(output);
-  for (const state of states) resizeObserver.observe(state.content);
+  for (const entry of states) resizeObserver.observe(entry.content);
 
   const intersection = new IntersectionObserver((entries) => {
     visible = entries[entries.length - 1]?.isIntersecting ?? true;
@@ -1592,21 +1592,21 @@ function initializeAsciiSweep(
     const source = event.target as HTMLElement | null;
     if (!source) return;
     syncingScroll = true;
-    for (const state of states) {
-      if (state.content === source) continue;
-      if (state.content.scrollTop !== source.scrollTop) {
-        state.content.scrollTop = source.scrollTop;
+    for (const entry of states) {
+      if (entry.content === source) continue;
+      if (entry.content.scrollTop !== source.scrollTop) {
+        entry.content.scrollTop = source.scrollTop;
       }
-      if (state.content.scrollLeft !== source.scrollLeft) {
-        state.content.scrollLeft = source.scrollLeft;
+      if (entry.content.scrollLeft !== source.scrollLeft) {
+        entry.content.scrollLeft = source.scrollLeft;
       }
     }
     syncingScroll = false;
     requestCapture();
     start();
   }
-  for (const state of states) {
-    state.content.addEventListener("scroll", onPanelScroll, { passive: true });
+  for (const entry of states) {
+    entry.content.addEventListener("scroll", onPanelScroll, { passive: true });
   }
 
   function onPageVisibility() {
@@ -1617,9 +1617,9 @@ function initializeAsciiSweep(
 
   const contentObservers = htmlInCanvas
     ? []
-    : states.map((state) => {
-        const observer = new MutationObserver(() => queueCapture(state));
-        observer.observe(state.content, {
+    : states.map((entry) => {
+        const observer = new MutationObserver(() => queueCapture(entry));
+        observer.observe(entry.content, {
           attributes: true,
           attributeFilter: ["class", "hidden", "src", "srcset", "style"],
           characterData: true,
@@ -1630,25 +1630,25 @@ function initializeAsciiSweep(
       });
 
   function onFallbackVisualChange() {
-    for (const state of states) queueCapture(state);
+    for (const entry of states) queueCapture(entry);
   }
 
   if (!htmlInCanvas) {
-    for (const state of states) {
-      state.content.addEventListener("load", onFallbackVisualChange, true);
-      state.content.addEventListener(
+    for (const entry of states) {
+      entry.content.addEventListener("load", onFallbackVisualChange, true);
+      entry.content.addEventListener(
         "loadeddata",
         onFallbackVisualChange,
         true,
       );
-      state.content.addEventListener("input", onFallbackVisualChange, true);
-      state.content.addEventListener("change", onFallbackVisualChange, true);
-      state.content.addEventListener(
+      entry.content.addEventListener("input", onFallbackVisualChange, true);
+      entry.content.addEventListener("change", onFallbackVisualChange, true);
+      entry.content.addEventListener(
         "transitionend",
         onFallbackVisualChange,
         true,
       );
-      state.content.addEventListener(
+      entry.content.addEventListener(
         "animationend",
         onFallbackVisualChange,
         true,
@@ -1705,29 +1705,29 @@ function initializeAsciiSweep(
       motionQuery.removeEventListener("change", onMotionChange);
       document.removeEventListener("visibilitychange", onPageVisibility);
       if (!htmlInCanvas) {
-        for (const state of states) {
-          state.content.removeEventListener("load", onFallbackVisualChange, true);
-          state.content.removeEventListener(
+        for (const entry of states) {
+          entry.content.removeEventListener("load", onFallbackVisualChange, true);
+          entry.content.removeEventListener(
             "loadeddata",
             onFallbackVisualChange,
             true,
           );
-          state.content.removeEventListener(
+          entry.content.removeEventListener(
             "input",
             onFallbackVisualChange,
             true,
           );
-          state.content.removeEventListener(
+          entry.content.removeEventListener(
             "change",
             onFallbackVisualChange,
             true,
           );
-          state.content.removeEventListener(
+          entry.content.removeEventListener(
             "transitionend",
             onFallbackVisualChange,
             true,
           );
-          state.content.removeEventListener(
+          entry.content.removeEventListener(
             "animationend",
             onFallbackVisualChange,
             true,
@@ -1738,12 +1738,12 @@ function initializeAsciiSweep(
           onFallbackVisualChange,
         );
       }
-      for (const state of states) {
-        state.content.removeEventListener("scroll", onPanelScroll);
-        window.clearTimeout(state.captureTimer);
-        window.clearTimeout(state.scrollTimer);
-        gl.deleteTexture(state.texture);
-        if (htmlInCanvas) state.paintable.onpaint = null;
+      for (const entry of states) {
+        entry.content.removeEventListener("scroll", onPanelScroll);
+        window.clearTimeout(entry.captureTimer);
+        window.clearTimeout(entry.scrollTimer);
+        gl.deleteTexture(entry.texture);
+        if (htmlInCanvas) entry.paintable.onpaint = null;
       }
       gl.deleteProgram(program);
       gl.deleteShader(vertexShader);

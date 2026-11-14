@@ -30,6 +30,8 @@ jobs:
       - run: npm ci
       - run: npm run lint
         name: Lint
+      - run: npm run check
+        name: Type check
       - run: npm test
         name: Test
   audit:
@@ -160,6 +162,11 @@ jobs:
         run: sleep 90
       - name: IndexNow (Яндекс, Bing и др.)
         run: node .github/scripts/indexnow.mjs
+        continue-on-error: true
+      - name: Google Search Console (sitemap)
+        run: node .github/scripts/gsc-sitemap.mjs
+        env:
+          GSC_SERVICE_ACCOUNT: ${{ secrets.GSC_SERVICE_ACCOUNT }}
   summary:
     name: Pipeline Summary
     if: always()

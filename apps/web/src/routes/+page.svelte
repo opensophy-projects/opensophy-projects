@@ -7,19 +7,21 @@
   import Phosphor from "$lib/components/ui-registry/Phosphor.svelte";
   import Terminal from "$lib/components/ui-registry/Terminal.svelte";
   import Radar from "$lib/components/ui-registry/Radar.svelte";
+  import ArcFlame from "$lib/components/ui-registry/ArcFlame.svelte";
   import NginxionsSection from "$lib/components/home/NginxionsSection.svelte";
   import ProductsPanel from "$lib/components/home/ProductsPanel.svelte";
   import { contactsState } from "$lib/stores/contacts.svelte";
 
-  // ─── Тяжёлые эффекты hero ─────────────────────────────────────
-  // three.js и WebGL-эффекты не входят в критический путь: страница сразу
-  // показывает статичный постер логотипа и CSS-дугу, а живые эффекты
-  // догружаются после загрузки страницы. На медленной сети или в режиме
-  // экономии трафика они не грузятся вовсе — постер остаётся на месте.
+  // ─── Порядок загрузки hero ────────────────────────────────────
+  // 1. Постер ASCII-логотипа — предзагружается первым (hooks.server.ts).
+  // 2. Огонь по дуге — лёгкий WebGL без библиотек, входит в основной бандл
+  //    страницы и загорается сразу после гидрации, на любой сети.
+  // 3. Живой 3D-логотип (three.js) и курсор — догружаются после загрузки
+  //    страницы; на медленной сети и в режиме экономии трафика не грузятся,
+  //    постер остаётся на месте.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   type LazyComponent = Component<any> | null;
   let AsciiObject = $state<LazyComponent>(null);
-  let ArcFlame = $state<LazyComponent>(null);
   let GhostCursor = $state<LazyComponent>(null);
   // Живой ASCII-рендер отрисован — статичный постер можно убрать
   let logoLive = $state(false);
@@ -35,9 +37,6 @@
 
   function loadEffects() {
     // Каждый эффект независим: сбой одной загрузки не ломает остальные
-    void import("$lib/components/ui-registry/ArcFlame.svelte")
-      .then((m) => (ArcFlame = m.default))
-      .catch(() => undefined);
     void import("$lib/components/ui-registry/AsciiObject.svelte")
       .then((m) => (AsciiObject = m.default))
       .catch(() => undefined);
@@ -187,7 +186,6 @@
       <div class="hero-halo"></div>
       <div class="hero-arc" bind:this={arcEl}></div>
       <!-- Огонь по дуге: эллипс берётся из .hero-arc -->
-      {#if ArcFlame}
       <ArcFlame
         arc={arcEl}
         color={flameColor}
@@ -199,7 +197,6 @@
         smoke={1.3}
         rim={3}
       />
-      {/if}
     </div>
 
     {#if GhostCursor && !isPhone}
