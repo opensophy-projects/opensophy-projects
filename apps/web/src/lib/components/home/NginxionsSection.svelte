@@ -2,7 +2,7 @@
 	import ArrowRight from 'carbon-icons-svelte/lib/ArrowRight.svelte';
 	import Badge from '$lib/components/ui-registry/Badge.svelte';
 	import FirewallIllustration from './FirewallIllustration.svelte';
-	import { flagshipProducts, nginxionsFeatures as features, nginxionsLinks } from '$lib/config/products';
+	import { flagshipProducts, nginxionsLinks } from '$lib/config/products';
 
 	const product = flagshipProducts.nginxions;
 </script>
@@ -33,27 +33,6 @@
 		<FirewallIllustration />
 	</div>
 
-	<div class="ngx-features">
-		<p class="ngx-features-label">Возможности</p>
-		<ul class="ngx-features-list">
-			{#each features as feature (feature.name)}
-				<li>
-					<details name="nginxions-feature">
-						<summary>
-							<span>{feature.name}</span>
-							<span class="ngx-plus" aria-hidden="true"></span>
-						</summary>
-						<p>
-							{feature.text}
-							<a href={nginxionsLinks.github} target="_blank" rel="noopener noreferrer">
-								Подробнее&nbsp;→
-							</a>
-						</p>
-					</details>
-				</li>
-			{/each}
-		</ul>
-	</div>
 </section>
 
 <style>
@@ -149,104 +128,7 @@
 	.ngx-visual {
 		width: 100%;
 		max-width: 62rem;
-		margin: clamp(1.5rem, 4vw, 3.5rem) auto clamp(2rem, 5vw, 4rem);
-	}
-
-	/* ─── Возможности ─── */
-	.ngx-features {
-		display: grid;
-		grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) minmax(0, 1fr);
-		gap: 1rem clamp(2rem, 6vw, 6rem);
-		padding-top: 1.75rem;
-	}
-
-	.ngx-features-label {
-		margin: 0;
-		font-size: 0.95rem;
-		color: var(--foreground-muted);
-	}
-
-	.ngx-features-list {
-		/* Колонки, а не grid: раскрытый пункт не растягивает соседа по строке */
-		grid-column: 2 / -1;
-		columns: 2;
-		column-gap: clamp(2rem, 6vw, 6rem);
-		margin: 0;
-		padding: 0;
-		list-style: none;
-	}
-
-	.ngx-features-list li {
-		break-inside: avoid;
-	}
-
-	summary {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.6rem;
-		padding: 0.4rem 0;
-		font-size: 0.95rem;
-		font-weight: 500;
-		color: var(--foreground);
-		list-style: none;
-		cursor: pointer;
-		transition: color 150ms ease-out;
-	}
-
-	summary::-webkit-details-marker {
-		display: none;
-	}
-
-	summary:hover,
-	details[open] summary {
-		color: var(--accent);
-	}
-
-	/* Плюс превращается в минус у раскрытого пункта */
-	.ngx-plus {
-		position: relative;
-		flex: none;
-		width: 0.6rem;
-		height: 0.6rem;
-		color: var(--foreground-muted);
-	}
-
-	.ngx-plus::before,
-	.ngx-plus::after {
-		content: '';
-		position: absolute;
-		top: 50%;
-		left: 0;
-		width: 100%;
-		height: 1px;
-		background: currentColor;
-		transition: transform 200ms ease-out;
-	}
-
-	.ngx-plus::after {
-		transform: rotate(90deg);
-	}
-
-	details[open] .ngx-plus::after {
-		transform: rotate(0deg);
-	}
-
-	details p {
-		margin: 0.15rem 0 0.9rem;
-		max-width: 26rem;
-		font-size: 0.9rem;
-		line-height: 1.5;
-		color: var(--foreground-muted);
-	}
-
-	details p a {
-		white-space: nowrap;
-		text-decoration: none;
-		color: var(--foreground);
-	}
-
-	details p a:hover {
-		color: var(--accent);
+		margin: clamp(1.5rem, 4vw, 3.5rem) auto 0;
 	}
 
 	@media (max-width: 899px) {
@@ -257,31 +139,12 @@
 		.ngx-head-copy {
 			padding-top: 0;
 		}
-
-		.ngx-features {
-			grid-template-columns: 1fr;
-		}
-
-		.ngx-features-list {
-			grid-column: 1;
-		}
 	}
 
 	@media (max-width: 559px) {
 		.ngx {
 			padding-left: 1rem;
 			padding-right: 1rem;
-		}
-	}
-
-	/* Список возможностей — только на десктопе */
-	@media (max-width: 767px) {
-		.ngx-features {
-			display: none;
-		}
-
-		.ngx-visual {
-			margin-bottom: 0;
 		}
 	}
 </style>
