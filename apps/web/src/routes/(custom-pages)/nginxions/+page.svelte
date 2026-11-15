@@ -1,5 +1,4 @@
 <script lang="ts">
-	import ArrowUpRight from 'carbon-icons-svelte/lib/ArrowUpRight.svelte';
 	import LogoGithub from 'carbon-icons-svelte/lib/LogoGithub.svelte';
 	import PageSeo from '$lib/components/seo/PageSeo.svelte';
 	import SiteMenu from '$lib/components/ui-registry/SiteMenu.svelte';
@@ -75,9 +74,6 @@
 			<div class="actions">
 				<a class="btn btn-primary" href={nginxionsLinks.github} target="_blank" rel="noopener noreferrer">
 					<LogoGithub size={16} /> Открыть на GitHub
-				</a>
-				<a class="btn" href={nginxionsLinks.docker} target="_blank" rel="noopener noreferrer">
-					Docker Hub <ArrowUpRight size={16} />
 				</a>
 			</div>
 		</div>
